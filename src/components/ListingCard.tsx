@@ -4,19 +4,14 @@ import Link from "next/link";
 import type { ListingCardData } from "@/types";
 
 const statusClasses = {
-  APPROVED: "bg-emerald-100 text-emerald-700",
-  PENDING: "bg-amber-100 text-amber-700",
-  REJECTED: "bg-rose-100 text-rose-700",
+  APPROVED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
+  PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
+  REJECTED: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
 } as const;
-
-type ListingCardProps = {
-  listing: ListingCardData;
-  showStatus?: boolean;
-};
 
 function getExpiringLabel(expiresAt?: string | Date | null) {
   if (!expiresAt) {
-    return "⏰ Expiring soon";
+    return "Expiring soon";
   }
 
   const expiryDate = new Date(expiresAt);
@@ -27,76 +22,114 @@ function getExpiringLabel(expiresAt?: string | Date | null) {
   const daysRemaining = Math.ceil((startOfExpiry.getTime() - startOfToday.getTime()) / millisecondsPerDay);
 
   if (daysRemaining <= 0) {
-    return "⏰ Expires today";
+    return "Expires today";
   }
 
   if (daysRemaining === 1) {
-    return "⏰ Expires in 1 day";
+    return "Expires in 1 day";
   }
 
-  return `⏰ Expires in ${daysRemaining} days`;
+  return `Expires in ${daysRemaining} days`;
 }
 
+function getInitials(name: string) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((value) => value[0]?.toUpperCase() ?? "")
+      .join("") || "CC"
+  );
+}
+
+type ListingCardProps = {
+  listing: ListingCardData;
+  showStatus?: boolean;
+};
+
 export default function ListingCard({ listing, showStatus = false }: ListingCardProps) {
+  const donorName = listing.user?.name?.trim() || "Community donor";
   const urgencyBadge =
     listing.urgency === "URGENT"
       ? {
-          className:
-            "animate-pulse rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
-          label: "⚡ Urgent",
+          className: "bg-amber-400/95 text-amber-950",
+          label: "Urgent pickup",
         }
       : listing.urgency === "EXPIRING"
         ? {
-            className:
-              "rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-500/15 dark:text-orange-200",
+            className: "bg-white/90 text-slate-900",
             label: getExpiringLabel(listing.expiresAt),
           }
         : null;
 
   return (
-    <Link
-      href={`/listings/${listing.id}`}
-      className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800"
-    >
-      <div className="relative h-52 w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
-        {listing.image ? (
-          <Image
-            src={listing.image}
-            alt={listing.title}
-            fill
-            className="object-cover transition duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-sky-100 to-indigo-100 text-4xl text-sky-700 dark:from-slate-800 dark:to-slate-700 dark:text-sky-300">
-            🎁
-          </div>
-        )}
-      </div>
+    <article className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-500/30">
+      <Link href={`/listings/${listing.id}`} className="block">
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-900">
+          {listing.image ? (
+            <Image
+              src={listing.image}
+              alt={listing.title}
+              fill
+              className="object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-100 via-teal-100 to-cyan-100 text-5xl text-emerald-700 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 dark:text-emerald-300">
+              🎁
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
 
-      <div className="space-y-3 p-5">
+          {listing.category ? (
+            <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm">
+              {listing.category.name}
+            </span>
+          ) : null}
+
+          {urgencyBadge ? (
+            <span className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold shadow-sm ${urgencyBadge.className}`}>
+              {urgencyBadge.label}
+            </span>
+          ) : null}
+        </div>
+      </Link>
+
+      <div className="flex flex-1 flex-col gap-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-2">
-            {urgencyBadge ? <span className={urgencyBadge.className}>{urgencyBadge.label}</span> : null}
-            <h3 className="line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{listing.title}</h3>
+            <h3 className="line-clamp-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+              {listing.title}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-300">Pickup area: {listing.location}</p>
           </div>
+
           {showStatus ? (
-            <span
-              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[listing.status]}`}
-            >
+            <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${statusClasses[listing.status]}`}>
               {listing.status}
             </span>
           ) : null}
         </div>
 
-        <div className="flex flex-wrap gap-2 text-sm text-slate-600 dark:text-slate-300">
-          {listing.category ? (
-            <span className="rounded-full bg-sky-100 px-2.5 py-1 font-medium text-sky-700 dark:bg-sky-500/15 dark:text-sky-200">
-              {listing.category.name}
+        <div className="mt-auto flex items-center justify-between gap-4 border-t border-slate-100 pt-4 dark:border-slate-700/80">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
+              {getInitials(donorName)}
             </span>
-          ) : null}
-          <span className="rounded-full bg-slate-100 px-2.5 py-1 dark:bg-slate-700 dark:text-slate-200">📍 {listing.location}</span>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{donorName}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Community donor</p>
+            </div>
+          </div>
+
+          <Link
+            href={`/listings/${listing.id}`}
+            className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+          >
+            View listing
+          </Link>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }

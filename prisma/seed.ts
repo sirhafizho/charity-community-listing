@@ -9,8 +9,9 @@ async function main() {
 
   const adminPassword = await hash("admin123", 12);
   const memberPassword = await hash("community123", 12);
+  const demoPassword = await hash("donor123", 12);
 
-  const adminUser = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: "admin@charity.org" },
     update: {
       name: "Charity Admin",
@@ -25,7 +26,7 @@ async function main() {
     },
   });
 
-  const communityUser = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: "member@charity.org" },
     update: {
       name: "Community Member",
@@ -40,14 +41,22 @@ async function main() {
     },
   });
 
-  const categoryNames = [
-    "Food",
-    "Clothing",
-    "Electronics",
-    "Furniture",
-    "Books",
-    "Other",
-  ];
+  const demoDonor = await prisma.user.upsert({
+    where: { email: "demo@charity.org" },
+    update: {
+      name: "Demo Donor",
+      password: demoPassword,
+      role: "USER",
+    },
+    create: {
+      name: "Demo Donor",
+      email: "demo@charity.org",
+      password: demoPassword,
+      role: "USER",
+    },
+  });
+
+  const categoryNames = ["Food", "Clothing", "Electronics", "Furniture", "Books", "Other"];
 
   const categories: Array<{ id: string; name: string }> = await Promise.all(
     categoryNames.map((name) =>
@@ -60,9 +69,7 @@ async function main() {
     ),
   );
 
-  const categoryMap = Object.fromEntries(
-    categories.map((category) => [category.name, category.id] as const),
-  );
+  const categoryMap = Object.fromEntries(categories.map((category) => [category.name, category.id] as const));
 
   await prisma.listing.createMany({
     data: [
@@ -73,7 +80,8 @@ async function main() {
         location: "Queens, NY",
         image: "/uploads/sample-coats.svg",
         status: "APPROVED",
-        userId: communityUser.id,
+        urgency: "URGENT",
+        userId: demoDonor.id,
         categoryId: categoryMap.Clothing,
       },
       {
@@ -83,7 +91,7 @@ async function main() {
         location: "Brooklyn, NY",
         image: "/uploads/sample-furniture.svg",
         status: "APPROVED",
-        userId: adminUser.id,
+        userId: demoDonor.id,
         categoryId: categoryMap.Furniture,
       },
       {
@@ -93,7 +101,9 @@ async function main() {
         location: "Harlem, NY",
         image: "/uploads/sample-books.svg",
         status: "APPROVED",
-        userId: communityUser.id,
+        urgency: "EXPIRING",
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
+        userId: demoDonor.id,
         categoryId: categoryMap.Books,
       },
     ],

@@ -19,8 +19,8 @@ export default function ClaimForm({ listingId, disabled = false }: ClaimFormProp
 
   if (disabled) {
     return (
-      <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 dark:border-amber-400/60 dark:bg-amber-500/10 dark:text-amber-200">
-        You cannot claim your own listing.
+      <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 dark:border-amber-400/50 dark:bg-amber-500/10 dark:text-amber-100">
+        You cannot claim your own listing. Share the listing instead so another organisation can request it.
       </div>
     );
   }
@@ -53,9 +53,7 @@ export default function ClaimForm({ listingId, disabled = false }: ClaimFormProp
       router.refresh();
     } catch (submissionError) {
       const nextError =
-        submissionError instanceof Error
-          ? submissionError.message
-          : "Unable to submit claim.";
+        submissionError instanceof Error ? submissionError.message : "Unable to submit claim.";
       setError(nextError);
       toast.error(nextError);
     } finally {
@@ -64,22 +62,30 @@ export default function ClaimForm({ listingId, disabled = false }: ClaimFormProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Claim this item</h3>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Let the donor know why this listing would help your community.
+    <form onSubmit={handleSubmit} className="space-y-5 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="space-y-2">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-700 dark:text-emerald-300">
+          Request this item
+        </p>
+        <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Claim this donation</h3>
+        <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Tell the donor who you are and how this item could help your community, programme, or charity.
         </p>
       </div>
 
       <textarea
         value={message}
         onChange={(event) => setMessage(event.target.value)}
-        rows={4}
+        rows={5}
         maxLength={500}
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
         placeholder="Optional message to the donor"
       />
+
+      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <span>Optional note</span>
+        <span>{message.length}/500</span>
+      </div>
 
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -90,9 +96,9 @@ export default function ClaimForm({ listingId, disabled = false }: ClaimFormProp
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400"
       >
-        {isSubmitting ? "Submitting..." : "Submit claim"}
+        {isSubmitting ? "Submitting…" : "Submit claim"}
       </button>
     </form>
   );

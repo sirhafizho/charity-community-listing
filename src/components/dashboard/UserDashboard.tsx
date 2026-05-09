@@ -69,7 +69,7 @@ export default function UserDashboard({ listings, claims }: UserDashboardProps) 
               onClick={() => setActiveTab(tab.id)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                 isActive
-                  ? "bg-sky-600 text-white"
+                  ? "bg-emerald-600 text-white"
                   : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-slate-100"
               }`}
             >
@@ -128,7 +128,7 @@ export default function UserDashboard({ listings, claims }: UserDashboardProps) 
                       <td className="px-6 py-4">
                         <Link
                           href={`/listings/${listing.id}`}
-                          className="text-sm font-medium text-sky-700 transition hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300"
+                          className="text-sm font-medium text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
                         >
                           View listing
                         </Link>
@@ -171,7 +171,7 @@ export default function UserDashboard({ listings, claims }: UserDashboardProps) 
                   claims.map((claim) => (
                     <tr key={claim.id} className="dark:bg-slate-800">
                       <td className="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100">
-                        <Link href={`/listings/${claim.listing.id}`} className="transition hover:text-sky-700 dark:hover:text-sky-300">
+                        <Link href={`/listings/${claim.listing.id}`} className="transition hover:text-emerald-700 dark:hover:text-emerald-300">
                           {claim.listing.title}
                         </Link>
                       </td>

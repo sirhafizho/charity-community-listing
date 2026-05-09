@@ -33,7 +33,7 @@ function inputClassName(hasError: boolean, extraClassName = "") {
     "w-full rounded-2xl border px-4 py-3 outline-none transition dark:bg-slate-800 dark:border-slate-600 dark:text-white",
     hasError
       ? "border-rose-300 focus:border-rose-500 dark:border-rose-500"
-      : "border-slate-200 focus:border-sky-500",
+      : "border-slate-200 focus:border-emerald-500",
     extraClassName,
   ]
     .filter(Boolean)
@@ -258,8 +258,8 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
         throw new Error("Unable to submit the listing.");
       }
 
-      toast.success("Listing submitted for review.");
-      router.push(`/listings/${result.data.id}`);
+      toast.success("Your listing is pending admin review.");
+      router.push("/dashboard?created=1");
       router.refresh();
     } catch (submissionError) {
       const message =
@@ -424,7 +424,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
             onChange={handleFileChange}
             aria-invalid={fieldErrors.image ? "true" : "false"}
             aria-describedby={fieldErrors.image ? "listing-image-error" : undefined}
-            className="block w-full rounded-2xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-sky-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-sky-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+            className="block w-full rounded-2xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
           />
           <p className="text-xs text-slate-500 dark:text-slate-300">Optional. JPG, PNG, GIF, or WebP up to 5MB.</p>
           <FieldErrorList messages={fieldErrors.image} id="listing-image-error" />
@@ -459,7 +459,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
       <button
         type="submit"
         disabled={isSubmitting || categories.length === 0}
-        className="inline-flex items-center justify-center rounded-full bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400"
       >
         {isSubmitting ? "Submitting..." : "Submit listing"}
       </button>

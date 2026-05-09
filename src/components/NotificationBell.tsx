@@ -204,7 +204,7 @@ export default function NotificationBell() {
               type="button"
               onClick={() => void handleMarkAllRead()}
               disabled={unreadCount === 0}
-              className="text-xs font-medium text-sky-700 transition hover:text-sky-800 disabled:cursor-not-allowed disabled:text-slate-400 dark:text-sky-400 dark:hover:text-sky-300 dark:disabled:text-slate-500"
+              className="text-xs font-medium text-emerald-700 transition hover:text-emerald-800 disabled:cursor-not-allowed disabled:text-slate-400 dark:text-emerald-300 dark:hover:text-emerald-200 dark:disabled:text-slate-500"
             >
               Mark all read
             </button>
@@ -220,7 +220,7 @@ export default function NotificationBell() {
                 <div
                   key={notification.id}
                   className={`border-b border-slate-100 p-4 last:border-b-0 dark:border-slate-700 ${
-                    notification.read ? "bg-transparent" : "bg-sky-50/80 dark:bg-sky-500/10"
+                    notification.read ? "bg-transparent" : "bg-emerald-50/80 dark:bg-emerald-500/10"
                   }`}
                 >
                   <div className="flex items-start gap-3">

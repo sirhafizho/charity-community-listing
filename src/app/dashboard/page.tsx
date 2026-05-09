@@ -6,12 +6,19 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const session = await auth();
 
   if (!session?.user?.id) {
     redirect("/login?callbackUrl=/dashboard");
   }
+
+  const params = await searchParams;
+  const showCreatedNotice = typeof params.created === "string" && params.created === "1";
 
   const [listings, claims] = await prisma.$transaction([
     prisma.listing.findMany({
@@ -66,33 +73,45 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Dashboard</h1>
-        <p className="text-slate-600 dark:text-slate-300">
-          Track your donated listings and claim requests in one place.
+      <div className="space-y-3">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700 dark:text-emerald-300">
+          Your dashboard
+        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Manage your impact</h1>
+        <p className="max-w-2xl text-slate-600 dark:text-slate-300">
+          Track donated listings, follow claim requests, and keep tabs on what your organisation has shared or requested.
         </p>
       </div>
 
+      {showCreatedNotice ? (
+        <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 px-6 py-5 text-sm text-emerald-800 shadow-sm dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+          <p className="font-semibold">Your listing is pending admin review.</p>
+          <p className="mt-1 text-emerald-700 dark:text-emerald-200">
+            We&apos;ll show it publicly once it has been approved by the moderation team.
+          </p>
+        </div>
+      ) : null}
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <p className="text-sm text-slate-500 dark:text-slate-300">Total listings</p>
           <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-slate-100">{stats.totalListings}</p>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <p className="text-sm text-slate-500 dark:text-slate-300">Approved</p>
-          <p className="mt-3 text-3xl font-semibold text-emerald-600 dark:text-emerald-300">{stats.approvedListings}</p>
+        <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5 shadow-sm dark:border-emerald-500/30 dark:bg-emerald-500/10">
+          <p className="text-sm text-emerald-700 dark:text-emerald-200">Approved</p>
+          <p className="mt-3 text-3xl font-semibold text-emerald-700 dark:text-emerald-100">{stats.approvedListings}</p>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <p className="text-sm text-slate-500 dark:text-slate-300">Pending</p>
-          <p className="mt-3 text-3xl font-semibold text-amber-600 dark:text-amber-300">{stats.pendingListings}</p>
+        <div className="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-5 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10">
+          <p className="text-sm text-amber-700 dark:text-amber-200">Pending</p>
+          <p className="mt-3 text-3xl font-semibold text-amber-700 dark:text-amber-100">{stats.pendingListings}</p>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <p className="text-sm text-slate-500 dark:text-slate-300">Claims made</p>
           <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-slate-100">{stats.claimsMade}</p>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <p className="text-sm text-slate-500 dark:text-slate-300">Claims approved</p>
-          <p className="mt-3 text-3xl font-semibold text-sky-600 dark:text-sky-300">{stats.approvedClaims}</p>
+        <div className="rounded-[1.75rem] border border-teal-200 bg-teal-50 p-5 shadow-sm dark:border-teal-500/30 dark:bg-teal-500/10">
+          <p className="text-sm text-teal-700 dark:text-teal-200">Claims approved</p>
+          <p className="mt-3 text-3xl font-semibold text-teal-700 dark:text-teal-100">{stats.approvedClaims}</p>
         </div>
       </section>
 

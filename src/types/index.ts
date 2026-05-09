@@ -136,6 +136,7 @@ export interface ListingCardData {
   urgency: ListingUrgency;
   expiresAt?: DateLike | null;
   category?: Pick<Category, "id" | "name"> | null;
+  user?: Pick<User, "id" | "name"> | null;
 }
 
 export interface AdminListing extends ListingCardData {

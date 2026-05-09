@@ -9,7 +9,7 @@ async function login(page: Page, email: string, password: string) {
   await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 10000 });
 }
 
-// Helper: register a new user
+// Helper: register a new user (auto-logs in and redirects to homepage)
 async function registerUser(page: Page, name: string): Promise<string> {
   const email = `feat-${Date.now()}@test.com`;
   await page.goto('/register');
@@ -17,7 +17,7 @@ async function registerUser(page: Page, name: string): Promise<string> {
   await page.getByPlaceholder('you@example.com').fill(email);
   await page.getByPlaceholder('Minimum 6 characters').fill('TestPass123!');
   await page.getByRole('button', { name: /register/i }).click();
-  await page.waitForTimeout(2000);
+  await page.waitForURL(url => !url.toString().includes('/register'), { timeout: 15000 });
   return email;
 }
 
@@ -86,8 +86,8 @@ test.describe('Feature: Urgency System', () => {
   });
 
   test('can create an urgent listing', async ({ page }) => {
-    const email = await registerUser(page, 'Urgent Creator');
-    await login(page, email, 'TestPass123!');
+    await registerUser(page, 'Urgent Creator');
+    // Already logged in after registration
     await page.goto('/listings/create');
     await page.waitForTimeout(2000);
 
@@ -106,9 +106,9 @@ test.describe('Feature: Urgency System', () => {
     await page.getByRole('button', { name: /submit listing/i }).click();
     await page.waitForTimeout(3000);
 
-    // Should succeed
+    // Should redirect to dashboard after creation
     const url = page.url();
-    expect(url).toMatch(/\/listings\/.+/);
+    expect(url).toMatch(/\/dashboard/);
   });
 });
 

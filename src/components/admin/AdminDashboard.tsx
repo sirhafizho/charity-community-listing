@@ -299,7 +299,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
                 onClick={() => setActiveFilter(filter.value)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                   isActive
-                    ? "bg-slate-900 text-white dark:bg-sky-600"
+                    ? "bg-slate-900 text-white dark:bg-emerald-600"
                     : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-slate-100"
                 }`}
               >
@@ -322,7 +322,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
                       type="checkbox"
                       checked={allFilteredSelected}
                       onChange={toggleSelectAll}
-                      className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                       aria-label="Select all listings"
                     />
                   </th>
@@ -397,7 +397,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
                           type="checkbox"
                           checked={selectedListingIds.includes(listing.id)}
                           onChange={() => toggleListingSelection(listing.id)}
-                          className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                          className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                           aria-label={`Select ${listing.title}`}
                         />
                       </td>
