@@ -35,7 +35,7 @@ export const createListingSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(20, "Description must be at least 20 characters.")
+    .min(10, "Description must be at least 10 characters.")
     .max(5000),
   categoryId: z.string().trim().min(1, "Category is required."),
   location: z.string().trim().min(2, "Location is required.").max(120),

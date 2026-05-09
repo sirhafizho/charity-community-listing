@@ -72,6 +72,15 @@ describe("validation schemas", () => {
     });
 
     expect(
+      createListingSchema.parse({
+        title: "Books",
+        description: "1234567890",
+        categoryId: "cat-1",
+        location: "Boston",
+      }).description,
+    ).toBe("1234567890");
+
+    expect(
       createListingSchema.safeParse({
         title: "AB",
         description: "Too short",

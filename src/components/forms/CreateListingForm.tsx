@@ -11,7 +11,69 @@ type CreateListingFormProps = {
   categories: Pick<Category, "id" | "name">[];
 };
 
+type ValidationDetails = {
+  fieldErrors?: Partial<Record<string, string[] | undefined>>;
+  formErrors?: string[];
+};
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+const listingFieldNames = ["title", "description", "categoryId", "location", "image"] as const;
+
+type ListingFieldName = (typeof listingFieldNames)[number];
+type ListingFieldErrors = Partial<Record<ListingFieldName, string[]>>;
+
+function inputClassName(hasError: boolean, extraClassName = "") {
+  return [
+    "w-full rounded-2xl border px-4 py-3 outline-none transition",
+    hasError ? "border-rose-300 focus:border-rose-500" : "border-slate-200 focus:border-sky-500",
+    extraClassName,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function isValidationDetails(value: unknown): value is ValidationDetails {
+  return typeof value === "object" && value !== null;
+}
+
+function extractFieldErrors(details: ValidationDetails | null): ListingFieldErrors {
+  const nextErrors: ListingFieldErrors = {};
+
+  if (!details?.fieldErrors) {
+    return nextErrors;
+  }
+
+  for (const field of listingFieldNames) {
+    const messages = details.fieldErrors[field];
+
+    if (!Array.isArray(messages)) {
+      continue;
+    }
+
+    const filteredMessages = messages.filter((message): message is string => Boolean(message?.trim()));
+
+    if (filteredMessages.length > 0) {
+      nextErrors[field] = filteredMessages;
+    }
+  }
+
+  return nextErrors;
+}
+
+function FieldErrorList({ messages, id }: { messages?: string[]; id?: string }) {
+  if (!messages || messages.length === 0) {
+    return null;
+  }
+
+  return (
+    <ul id={id} className="space-y-1 text-sm text-rose-600">
+      {messages.map((message) => (
+        <li key={message}>{message}</li>
+      ))}
+    </ul>
+  );
+}
 
 export default function CreateListingForm({ categories }: CreateListingFormProps) {
   const router = useRouter();
@@ -21,7 +83,8 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
   const [location, setLocation] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [formMessages, setFormMessages] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<ListingFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -32,23 +95,66 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
     };
   }, [previewUrl]);
 
+  const clearFieldError = (field: ListingFieldName) => {
+    setFieldErrors((currentErrors) => {
+      if (!currentErrors[field]) {
+        return currentErrors;
+      }
+
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[field];
+      return nextErrors;
+    });
+  };
+
+  const resetValidationState = () => {
+    setFormMessages([]);
+    setFieldErrors({});
+  };
+
+  const setValidationState = (messages: string[], errors: ListingFieldErrors = {}) => {
+    setFormMessages(messages);
+    setFieldErrors(errors);
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
 
     if (!file) {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
       setSelectedFile(null);
       setPreviewUrl(null);
+      clearFieldError("image");
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file.");
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setValidationState(["Please review the highlighted fields."], {
+        image: ["Please choose a JPG, PNG, GIF, or WebP image."],
+      });
       event.target.value = "";
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      setError("Image size must be 5MB or smaller.");
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setValidationState(["Please review the highlighted fields."], {
+        image: ["Image size must be 5MB or smaller."],
+      });
       event.target.value = "";
       return;
     }
@@ -57,7 +163,8 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
       URL.revokeObjectURL(previewUrl);
     }
 
-    setError(null);
+    setFormMessages([]);
+    clearFieldError("image");
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -88,11 +195,11 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
     event.preventDefault();
 
     if (categories.length === 0) {
-      setError("Create a category before submitting a listing.");
+      setValidationState(["Create a category before submitting a listing."]);
       return;
     }
 
-    setError(null);
+    resetValidationState();
     setIsSubmitting(true);
 
     try {
@@ -114,7 +221,28 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
       const result = (await response.json()) as ApiResponse<Listing>;
 
       if (!response.ok || !result.success) {
-        throw new Error(result.success ? "Unable to create listing." : result.error);
+        if (!result.success) {
+          const details = isValidationDetails(result.details) ? result.details : null;
+          const nextFieldErrors = extractFieldErrors(details);
+          const nextFormMessages = details?.formErrors?.filter((message): message is string =>
+            Boolean(message?.trim()),
+          );
+          const fallbackMessage =
+            nextFormMessages && nextFormMessages.length > 0
+              ? nextFormMessages[0]
+              : Object.keys(nextFieldErrors).length > 0
+                ? "Please correct the highlighted fields and try again."
+                : result.error || "Unable to submit the listing.";
+
+          setValidationState(
+            nextFormMessages && nextFormMessages.length > 0 ? nextFormMessages : [fallbackMessage],
+            nextFieldErrors,
+          );
+          toast.error(fallbackMessage);
+          return;
+        }
+
+        throw new Error("Unable to submit the listing.");
       }
 
       toast.success("Listing submitted for review.");
@@ -125,7 +253,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
         submissionError instanceof Error
           ? submissionError.message
           : "Unable to submit the listing.";
-      setError(message);
+      setValidationState([message]);
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -146,33 +274,53 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           <span className="text-sm font-medium text-slate-700">Title</span>
           <input
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            onChange={(event) => {
+              setTitle(event.target.value);
+              setFormMessages([]);
+              clearFieldError("title");
+            }}
             required
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+            aria-invalid={fieldErrors.title ? "true" : "false"}
+            aria-describedby={fieldErrors.title ? "listing-title-error" : undefined}
+            className={inputClassName(Boolean(fieldErrors.title))}
             placeholder="Children's story books"
           />
+          <FieldErrorList messages={fieldErrors.title} id="listing-title-error" />
         </label>
 
         <label className="space-y-2 md:col-span-2">
           <span className="text-sm font-medium text-slate-700">Description</span>
           <textarea
             value={description}
-            onChange={(event) => setDescription(event.target.value)}
+            onChange={(event) => {
+              setDescription(event.target.value);
+              setFormMessages([]);
+              clearFieldError("description");
+            }}
             required
             rows={6}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+            aria-invalid={fieldErrors.description ? "true" : "false"}
+            aria-describedby={fieldErrors.description ? "listing-description-error" : undefined}
+            className={inputClassName(Boolean(fieldErrors.description))}
             placeholder="Describe the item condition, quantity, and pick-up details."
           />
+          <FieldErrorList messages={fieldErrors.description} id="listing-description-error" />
         </label>
 
         <label className="space-y-2">
           <span className="text-sm font-medium text-slate-700">Category</span>
           <select
             value={categoryId}
-            onChange={(event) => setCategoryId(event.target.value)}
+            onChange={(event) => {
+              setCategoryId(event.target.value);
+              setFormMessages([]);
+              clearFieldError("categoryId");
+            }}
             required
             disabled={categories.length === 0}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+            aria-invalid={fieldErrors.categoryId ? "true" : "false"}
+            aria-describedby={fieldErrors.categoryId ? "listing-category-error" : undefined}
+            className={inputClassName(Boolean(fieldErrors.categoryId), "disabled:cursor-not-allowed disabled:bg-slate-100")}
           >
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -180,28 +328,39 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
               </option>
             ))}
           </select>
+          <FieldErrorList messages={fieldErrors.categoryId} id="listing-category-error" />
         </label>
 
         <label className="space-y-2">
           <span className="text-sm font-medium text-slate-700">Location</span>
           <input
             value={location}
-            onChange={(event) => setLocation(event.target.value)}
+            onChange={(event) => {
+              setLocation(event.target.value);
+              setFormMessages([]);
+              clearFieldError("location");
+            }}
             required
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+            aria-invalid={fieldErrors.location ? "true" : "false"}
+            aria-describedby={fieldErrors.location ? "listing-location-error" : undefined}
+            className={inputClassName(Boolean(fieldErrors.location))}
             placeholder="Brooklyn, NY"
           />
+          <FieldErrorList messages={fieldErrors.location} id="listing-location-error" />
         </label>
 
         <label className="space-y-2 md:col-span-2">
           <span className="text-sm font-medium text-slate-700">Image</span>
           <input
             type="file"
-            accept="image/*"
+            accept=".jpg,.jpeg,.png,.gif,.webp"
             onChange={handleFileChange}
+            aria-invalid={fieldErrors.image ? "true" : "false"}
+            aria-describedby={fieldErrors.image ? "listing-image-error" : undefined}
             className="block w-full rounded-2xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-sky-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-sky-700"
           />
-          <p className="text-xs text-slate-500">Optional. JPG, PNG, GIF, SVG, or WebP up to 5MB.</p>
+          <p className="text-xs text-slate-500">Optional. JPG, PNG, GIF, or WebP up to 5MB.</p>
+          <FieldErrorList messages={fieldErrors.image} id="listing-image-error" />
         </label>
       </div>
 
@@ -219,9 +378,14 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
         </div>
       ) : null}
 
-      {error ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error}
+      {formMessages.length > 0 ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+          <p className="font-semibold">Please fix the following:</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {formMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
         </div>
       ) : null}
 

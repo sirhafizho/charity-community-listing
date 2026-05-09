@@ -14,6 +14,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const search = typeof params.search === "string" ? params.search : "";
   const category = typeof params.category === "string" ? params.category : "";
+  const hasFilters = Boolean(search || category);
 
   const where = {
     status: "APPROVED",
@@ -24,6 +25,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             { title: { contains: search } },
             { description: { contains: search } },
             { location: { contains: search } },
+            { category: { name: { contains: search } } },
           ],
         }
       : {}),
@@ -52,49 +54,88 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   }));
 
   return (
-    <div className="space-y-10">
-      <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-sky-700 via-sky-600 to-indigo-700 px-8 py-14 text-white shadow-xl sm:px-12">
-        <div className="max-w-3xl space-y-6">
-          <span className="inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-medium backdrop-blur">
-            Community-powered giving
-          </span>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Help good items reach the people who need them most.
-          </h1>
-          <p className="max-w-2xl text-lg text-sky-50">
-            Browse approved donations, connect with local charities, and share items with your community.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/listings/create"
-              className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
-            >
-              Share an item
-            </Link>
-            <a
-              href="#listings"
-              className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Explore listings
-            </a>
+    <div className="space-y-14">
+      <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-sky-700 via-sky-600 to-indigo-700 px-6 py-12 text-white shadow-xl sm:px-10 lg:px-12 lg:py-16">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)] lg:items-end">
+          <div className="max-w-3xl space-y-6">
+            <span className="inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-medium backdrop-blur">
+              Community-powered giving
+            </span>
+            <div className="space-y-4">
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                Help good items reach the people who need them most.
+              </h1>
+              <p className="max-w-2xl text-lg leading-8 text-sky-50">
+                Browse trusted donations, connect with local charities, and share useful items with
+                your community in just a few clicks.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/listings/create"
+                className="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/20 transition hover:bg-slate-800"
+              >
+                Share an item
+              </Link>
+              <a
+                href="#listings"
+                className="rounded-full border-2 border-white px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Explore listings
+              </a>
+            </div>
+          </div>
+
+          <div className="grid gap-4 rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-2xl shadow-sky-950/10 backdrop-blur sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+            <div className="rounded-2xl bg-white/10 p-4">
+              <p className="text-sm text-sky-100/85">Approved listings</p>
+              <p className="mt-2 text-3xl font-semibold text-white">{listingCards.length}</p>
+              <p className="mt-1 text-sm text-sky-100/75">Freshly reviewed and ready to browse.</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4">
+              <p className="text-sm text-sky-100/85">Categories</p>
+              <p className="mt-2 text-3xl font-semibold text-white">{categories.length}</p>
+              <p className="mt-1 text-sm text-sky-100/75">From clothing and books to furniture.</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4">
+              <p className="text-sm text-sky-100/85">Local impact</p>
+              <p className="mt-2 text-3xl font-semibold text-white">24/7</p>
+              <p className="mt-1 text-sm text-sky-100/75">Search, filter, and connect whenever you need.</p>
+            </div>
           </div>
         </div>
       </section>
 
       <section id="listings" className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Approved listings</h2>
-            <p className="text-sm text-slate-600">
-              Search by keyword or narrow results to a specific category.
+          <div className="space-y-2">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-sky-700">
+              Approved listings
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
+              Find items ready for community pickup
+            </h2>
+            <p className="max-w-2xl text-sm leading-6 text-slate-600">
+              Search by keyword or narrow the catalogue to a category. We are showing the latest{" "}
+              <span className="font-semibold text-slate-900">{listingCards.length}</span> approved
+              listings right now.
             </p>
           </div>
-          <Link href="/" className="text-sm font-medium text-sky-700 transition hover:text-sky-800">
+          <Link
+            href="/"
+            className={`text-sm font-medium transition ${
+              hasFilters ? "text-sky-700 hover:text-sky-800" : "text-slate-400"
+            }`}
+          >
             Clear filters
           </Link>
         </div>
 
-        <form className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-[2fr,1fr,auto]">
+        <form
+          action="/"
+          method="GET"
+          className="grid gap-4 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-[2fr,1fr,auto]"
+        >
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Search</span>
             <input
@@ -123,7 +164,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <div className="flex items-end">
             <button
               type="submit"
-              className="w-full rounded-full bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
+              className="w-full rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
               Apply filters
             </button>
@@ -131,8 +172,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </form>
 
         {listings.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
-            No approved listings matched your search.
+          <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white px-8 py-16 text-center text-slate-500">
+            <p className="text-lg font-medium text-slate-700">No approved listings matched your search.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              Try broadening your keywords or clearing the current filters.
+            </p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
