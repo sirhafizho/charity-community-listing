@@ -1,0 +1,12 @@
+# Charity Community Listing System
+- Purpose: a Next.js App Router web app for sharing, browsing, and claiming donated items for charities and community groups.
+- Tech stack: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, NextAuth v5 credentials auth, Prisma ORM with SQLite, Zod validation, bcryptjs password hashing, Sonner notifications.
+- Main domains: users, categories, listings, claims, admin moderation, uploads.
+- Code structure:
+  - `src/app`: App Router pages and API routes
+  - `src/components`: UI components and client-side form/admin widgets
+  - `src/lib`: Prisma client, auth setup, API helpers, validation schemas
+  - `src/types`: shared domain and API TypeScript types
+  - `prisma`: schema, config, seed script
+  - `public/uploads`: seeded/sample and uploaded images
+- Auth model: credentials login with JWT sessions; session contains user id and role; middleware protects `/admin` and `/listings/create`.
