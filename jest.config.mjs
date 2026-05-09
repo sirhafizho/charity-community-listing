@@ -1,11 +1,11 @@
-import type { Config } from "jest";
 import nextJest from "next/jest.js";
 
 const createJestConfig = nextJest({
   dir: "./",
 });
 
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   clearMocks: true,
   coverageProvider: "v8",
   testEnvironment: "node",
