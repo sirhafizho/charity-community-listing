@@ -26,11 +26,7 @@ test.describe('Feature: Dark Mode', () => {
     await page.goto('/');
     await page.waitForTimeout(1000);
 
-    // Theme toggle button should be visible
-    const themeBtn = page.locator('button[aria-label*="theme"], button[aria-label*="Theme"]').or(
-      page.locator('button').filter({ has: page.locator('svg') }).filter({ hasText: '' })
-    );
-    // Just verify there's a toggle-style button in the header
+    // Header should have interactive buttons (theme toggle among them)
     const header = page.locator('header');
     const buttons = header.locator('button');
     const count = await buttons.count();
