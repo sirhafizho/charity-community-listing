@@ -1,0 +1,14 @@
+title = "Gitleaks Configuration"
+
+[allowlist]
+description = "Allowlist for known safe patterns"
+paths = [
+  '''\.env\.example''',
+  '''package-lock\.json''',
+]
+
+# Allow the example secret in .env.example
+regexes = [
+  '''charity-community-listing-secret-change-in-production''',
+  '''ci-test-secret''',
+]
