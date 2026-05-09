@@ -44,3 +44,17 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Database
+prisma/dev.db
+prisma/dev.db-journal
+prisma/*.db
+prisma/*.db-journal
+
+# Uploads (keep directory but not files)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Test results
+test-results/
+playwright-report/
