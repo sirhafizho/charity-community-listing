@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
+import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { updateClaimStatusSchema } from "@/lib/validations";
 
@@ -67,6 +68,17 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
           },
         },
       },
+    });
+
+    await createNotification({
+      userId: updatedClaim.userId,
+      type: payload.status === "APPROVED" ? "CLAIM_APPROVED" : "CLAIM_REJECTED",
+      title: payload.status === "APPROVED" ? "Claim approved" : "Claim update",
+      message:
+        payload.status === "APPROVED"
+          ? `Your claim for ${claim.listing.title} was approved.`
+          : `Your claim for ${claim.listing.title} was not approved this time.`,
+      link: `/listings/${claim.listing.id}`,
     });
 
     return apiSuccess(updatedClaim, {

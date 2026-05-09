@@ -43,7 +43,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ urgency: "desc" }, { createdAt: "desc" }],
       take: 12,
     }),
   ]);
@@ -51,6 +51,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const listingCards: ListingCardData[] = listings.map((listing) => ({
     ...listing,
     status: listing.status as ListingCardData["status"],
+    urgency: listing.urgency as ListingCardData["urgency"],
   }));
 
   return (
@@ -106,25 +107,25 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      <section id="listings" className="space-y-6">
+      <section id="listings" className="space-y-6 rounded-[2rem] bg-white/70 p-6 shadow-sm dark:bg-slate-800/60 sm:p-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-sky-700">
               Approved listings
             </p>
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
               Find items ready for community pickup
             </h2>
-            <p className="max-w-2xl text-sm leading-6 text-slate-600">
+            <p className="max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
               Search by keyword or narrow the catalogue to a category. We are showing the latest{" "}
-              <span className="font-semibold text-slate-900">{listingCards.length}</span> approved
+              <span className="font-semibold text-slate-900 dark:text-slate-100">{listingCards.length}</span> approved
               listings right now.
             </p>
           </div>
           <Link
             href="/"
             className={`text-sm font-medium transition ${
-              hasFilters ? "text-sky-700 hover:text-sky-800" : "text-slate-400"
+              hasFilters ? "text-sky-700 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300" : "text-slate-400 dark:text-slate-500"
             }`}
           >
             Clear filters
@@ -134,24 +135,24 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <form
           action="/"
           method="GET"
-          className="grid gap-4 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-[2fr,1fr,auto]"
+          className="grid gap-4 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:grid-cols-[2fr,1fr,auto]"
         >
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Search</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Search</span>
             <input
               type="search"
               name="search"
               defaultValue={search}
               placeholder="Search by title, location, or description"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
             />
           </label>
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Category</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Category</span>
             <select
               name="category"
               defaultValue={category}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
             >
               <option value="">All categories</option>
               {categories.map((item) => (
@@ -172,9 +173,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </form>
 
         {listings.length === 0 ? (
-          <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white px-8 py-16 text-center text-slate-500">
-            <p className="text-lg font-medium text-slate-700">No approved listings matched your search.</p>
-            <p className="mt-2 text-sm text-slate-500">
+          <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white px-8 py-16 text-center text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            <p className="text-lg font-medium text-slate-700 dark:text-slate-100">No approved listings matched your search.</p>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-300">
               Try broadening your keywords or clearing the current filters.
             </p>
           </div>

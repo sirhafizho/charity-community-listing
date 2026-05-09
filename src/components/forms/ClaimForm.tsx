@@ -19,7 +19,7 @@ export default function ClaimForm({ listingId, disabled = false }: ClaimFormProp
 
   if (disabled) {
     return (
-      <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
+      <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 dark:border-amber-400/60 dark:bg-amber-500/10 dark:text-amber-200">
         You cannot claim your own listing.
       </div>
     );
@@ -64,10 +64,10 @@ export default function ClaimForm({ listingId, disabled = false }: ClaimFormProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900">Claim this item</h3>
-        <p className="mt-1 text-sm text-slate-600">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Claim this item</h3>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           Let the donor know why this listing would help your community.
         </p>
       </div>
@@ -77,7 +77,7 @@ export default function ClaimForm({ listingId, disabled = false }: ClaimFormProp
         onChange={(event) => setMessage(event.target.value)}
         rows={4}
         maxLength={500}
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
         placeholder="Optional message to the donor"
       />
 

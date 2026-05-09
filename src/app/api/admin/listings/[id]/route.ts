@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
+import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { updateListingStatusSchema } from "@/lib/validations";
 
@@ -48,6 +49,17 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
           },
         },
       },
+    });
+
+    await createNotification({
+      userId: updatedListing.userId,
+      type: payload.status === "APPROVED" ? "LISTING_APPROVED" : "LISTING_REJECTED",
+      title: payload.status === "APPROVED" ? "Listing approved" : "Listing rejected",
+      message:
+        payload.status === "APPROVED"
+          ? `${updatedListing.title} is now live for the community to browse.`
+          : `${updatedListing.title} was not approved. Please review it and try again.`,
+      link: `/listings/${updatedListing.id}`,
     });
 
     return apiSuccess(updatedListing, {

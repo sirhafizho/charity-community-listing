@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
+import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { createClaimSchema } from "@/lib/validations";
 
@@ -157,6 +158,14 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+    });
+
+    await createNotification({
+      userId: listing.userId,
+      type: "NEW_CLAIM",
+      title: "New claim received",
+      message: `${session.user.name ?? "A community member"} submitted a claim for ${listing.title}.`,
+      link: `/listings/${listing.id}`,
     });
 
     return apiSuccess(claim, {

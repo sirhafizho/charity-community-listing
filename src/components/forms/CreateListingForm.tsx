@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import type { ApiResponse, Category, Listing } from "@/types";
+import type { ApiResponse, Category, Listing, ListingUrgency } from "@/types";
 
 type CreateListingFormProps = {
   categories: Pick<Category, "id" | "name">[];
@@ -18,15 +18,22 @@ type ValidationDetails = {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-const listingFieldNames = ["title", "description", "categoryId", "location", "image"] as const;
+const listingFieldNames = ["title", "description", "categoryId", "location", "urgency", "expiresAt", "image"] as const;
+const urgencyOptions: Array<{ description: string; label: string; value: ListingUrgency }> = [
+  { value: "NORMAL", label: "Normal", description: "Standard pickup timeline" },
+  { value: "URGENT", label: "Urgent", description: "Needs pickup today" },
+  { value: "EXPIRING", label: "Expiring soon", description: "Available for a limited time" },
+];
 
 type ListingFieldName = (typeof listingFieldNames)[number];
 type ListingFieldErrors = Partial<Record<ListingFieldName, string[]>>;
 
 function inputClassName(hasError: boolean, extraClassName = "") {
   return [
-    "w-full rounded-2xl border px-4 py-3 outline-none transition",
-    hasError ? "border-rose-300 focus:border-rose-500" : "border-slate-200 focus:border-sky-500",
+    "w-full rounded-2xl border px-4 py-3 outline-none transition dark:bg-slate-800 dark:border-slate-600 dark:text-white",
+    hasError
+      ? "border-rose-300 focus:border-rose-500 dark:border-rose-500"
+      : "border-slate-200 focus:border-sky-500",
     extraClassName,
   ]
     .filter(Boolean)
@@ -81,11 +88,15 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [location, setLocation] = useState("");
+  const [urgency, setUrgency] = useState<ListingUrgency>("NORMAL");
+  const [expiresAt, setExpiresAt] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [formMessages, setFormMessages] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<ListingFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const minimumExpiryDate = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   useEffect(() => {
     return () => {
@@ -214,6 +225,8 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           description,
           categoryId,
           location,
+          urgency,
+          expiresAt: urgency === "EXPIRING" && expiresAt ? expiresAt : undefined,
           image,
         }),
       });
@@ -261,17 +274,17 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <div>
-        <h2 className="text-2xl font-semibold text-slate-900">Create a new listing</h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Create a new listing</h2>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           Share items with your community. New listings stay pending until an admin reviews them.
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <label className="space-y-2 md:col-span-2">
-          <span className="text-sm font-medium text-slate-700">Title</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Title</span>
           <input
             value={title}
             onChange={(event) => {
@@ -289,7 +302,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
         </label>
 
         <label className="space-y-2 md:col-span-2">
-          <span className="text-sm font-medium text-slate-700">Description</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Description</span>
           <textarea
             value={description}
             onChange={(event) => {
@@ -308,7 +321,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
         </label>
 
         <label className="space-y-2">
-          <span className="text-sm font-medium text-slate-700">Category</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Category</span>
           <select
             value={categoryId}
             onChange={(event) => {
@@ -320,7 +333,10 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
             disabled={categories.length === 0}
             aria-invalid={fieldErrors.categoryId ? "true" : "false"}
             aria-describedby={fieldErrors.categoryId ? "listing-category-error" : undefined}
-            className={inputClassName(Boolean(fieldErrors.categoryId), "disabled:cursor-not-allowed disabled:bg-slate-100")}
+            className={inputClassName(
+              Boolean(fieldErrors.categoryId),
+              "disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-700",
+            )}
           >
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -332,7 +348,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
         </label>
 
         <label className="space-y-2">
-          <span className="text-sm font-medium text-slate-700">Location</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Location</span>
           <input
             value={location}
             onChange={(event) => {
@@ -349,24 +365,75 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           <FieldErrorList messages={fieldErrors.location} id="listing-location-error" />
         </label>
 
+        <label className="space-y-2">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Urgency</span>
+          <select
+            value={urgency}
+            onChange={(event) => {
+              const nextUrgency = event.target.value as ListingUrgency;
+              setUrgency(nextUrgency);
+              setFormMessages([]);
+              clearFieldError("urgency");
+
+              if (nextUrgency !== "EXPIRING") {
+                setExpiresAt("");
+                clearFieldError("expiresAt");
+              }
+            }}
+            aria-invalid={fieldErrors.urgency ? "true" : "false"}
+            aria-describedby={fieldErrors.urgency ? "listing-urgency-error" : undefined}
+            className={inputClassName(Boolean(fieldErrors.urgency))}
+          >
+            {urgencyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label} — {option.description}
+              </option>
+            ))}
+          </select>
+          <FieldErrorList messages={fieldErrors.urgency} id="listing-urgency-error" />
+        </label>
+
+        {urgency === "EXPIRING" ? (
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Expiry date</span>
+            <input
+              type="date"
+              value={expiresAt}
+              min={minimumExpiryDate}
+              onChange={(event) => {
+                setExpiresAt(event.target.value);
+                setFormMessages([]);
+                clearFieldError("expiresAt");
+              }}
+              aria-invalid={fieldErrors.expiresAt ? "true" : "false"}
+              aria-describedby={fieldErrors.expiresAt ? "listing-expires-at-error" : undefined}
+              className={inputClassName(Boolean(fieldErrors.expiresAt))}
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-300">
+              Optional. Let people know when this item will no longer be available.
+            </p>
+            <FieldErrorList messages={fieldErrors.expiresAt} id="listing-expires-at-error" />
+          </label>
+        ) : null}
+
         <label className="space-y-2 md:col-span-2">
-          <span className="text-sm font-medium text-slate-700">Image</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Image</span>
           <input
             type="file"
             accept=".jpg,.jpeg,.png,.gif,.webp"
             onChange={handleFileChange}
             aria-invalid={fieldErrors.image ? "true" : "false"}
             aria-describedby={fieldErrors.image ? "listing-image-error" : undefined}
-            className="block w-full rounded-2xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-sky-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-sky-700"
+            className="block w-full rounded-2xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-sky-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-sky-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
           />
-          <p className="text-xs text-slate-500">Optional. JPG, PNG, GIF, or WebP up to 5MB.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-300">Optional. JPG, PNG, GIF, or WebP up to 5MB.</p>
           <FieldErrorList messages={fieldErrors.image} id="listing-image-error" />
         </label>
       </div>
 
       {previewUrl ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="mb-3 text-sm font-medium text-slate-700">Image preview</p>
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+          <p className="mb-3 text-sm font-medium text-slate-700 dark:text-slate-200">Image preview</p>
           <Image
             src={previewUrl}
             alt="Preview"

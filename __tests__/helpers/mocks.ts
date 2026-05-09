@@ -28,6 +28,9 @@ export const mockPrisma = {
     create: jest.fn(),
     update: jest.fn(),
   },
+  notification: {
+    create: jest.fn(),
+  },
 };
 
 export function resetTestMocks() {

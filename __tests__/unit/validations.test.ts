@@ -69,6 +69,7 @@ describe("validation schemas", () => {
       categoryId: "cat-1",
       location: "Boston",
       image: "https://example.com/coat.png",
+      urgency: "NORMAL",
     });
 
     expect(

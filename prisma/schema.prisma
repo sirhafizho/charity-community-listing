@@ -16,8 +16,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  listings Listing[]
-  claims   Claim[]
+  listings      Listing[]
+  claims        Claim[]
+  notifications Notification[]
 }
 
 model Category {
@@ -37,6 +38,8 @@ model Listing {
   image       String?
   location    String
   status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  urgency     String   @default("NORMAL") // NORMAL, URGENT, EXPIRING
+  expiresAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -60,4 +63,17 @@ model Claim {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, listingId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // CLAIM_APPROVED, CLAIM_REJECTED, LISTING_APPROVED, LISTING_REJECTED, NEW_CLAIM
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

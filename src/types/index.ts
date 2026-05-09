@@ -3,6 +3,7 @@ export type DateLike = Date | string;
 export type UserRole = "USER" | "ADMIN";
 export type ListingStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type ClaimStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type ListingUrgency = "NORMAL" | "URGENT" | "EXPIRING";
 
 export interface User {
   id: string;
@@ -28,6 +29,8 @@ export interface Listing {
   image?: string | null;
   location: string;
   status: ListingStatus;
+  urgency: ListingUrgency;
+  expiresAt?: DateLike | null;
   createdAt: DateLike;
   updatedAt: DateLike;
   userId: string;
@@ -49,11 +52,24 @@ export interface Claim {
   user?: Pick<User, "id" | "name" | "email">;
 }
 
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  link?: string | null;
+  createdAt: DateLike;
+  userId: string;
+}
+
 export interface CreateListingFormValues {
   title: string;
   description: string;
   categoryId: string;
   location: string;
+  urgency?: ListingUrgency;
+  expiresAt?: DateLike | null;
   image?: string;
 }
 
@@ -117,6 +133,8 @@ export interface ListingCardData {
   image?: string | null;
   location: string;
   status: ListingStatus;
+  urgency: ListingUrgency;
+  expiresAt?: DateLike | null;
   category?: Pick<Category, "id" | "name"> | null;
 }
 

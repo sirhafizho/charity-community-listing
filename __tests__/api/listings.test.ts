@@ -85,7 +85,7 @@ describe("/api/listings", () => {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ urgency: "desc" }, { createdAt: "desc" }],
       skip: 1,
       take: 1,
     });
@@ -168,6 +168,8 @@ describe("/api/listings", () => {
         categoryId: "cat-1",
         userId: "user-1",
         status: "PENDING",
+        urgency: "NORMAL",
+        expiresAt: null,
       },
       include: {
         category: true,

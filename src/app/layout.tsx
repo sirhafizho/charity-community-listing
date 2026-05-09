@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import Navbar from "@/components/Navbar";
 import Providers from "@/components/Providers";
+import ThemeProvider from "@/components/ThemeProvider";
 import { auth } from "@/lib/auth";
 
 import "./globals.css";
@@ -32,16 +33,19 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-screen bg-slate-50 text-slate-900">
+      <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
         <Providers session={session}>
-          <div className="flex min-h-screen flex-col">
-            <Navbar />
-            <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8 sm:px-6 lg:px-8">
-              {children}
-            </main>
-          </div>
+          <ThemeProvider>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8 sm:px-6 lg:px-8">
+                {children}
+              </main>
+            </div>
+          </ThemeProvider>
         </Providers>
       </body>
     </html>

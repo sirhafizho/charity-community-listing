@@ -55,44 +55,44 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 items-center">
-      <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-slate-900">Register</h1>
-          <p className="text-sm text-slate-600">Create an account to share or claim community donations.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Register</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Create an account to share or claim community donations.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Name</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Name</span>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
               required
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
               placeholder="Jane Doe"
             />
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Email</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Email</span>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
               placeholder="you@example.com"
             />
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Password</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Password</span>
             <input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
               placeholder="Minimum 6 characters"
             />
           </label>
@@ -112,9 +112,9 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-600">
+        <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-300">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-sky-700 hover:text-sky-800">
+          <Link href="/login" className="font-semibold text-sky-700 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300">
             Login
           </Link>
         </p>
