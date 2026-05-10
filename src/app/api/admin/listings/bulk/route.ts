@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { bulkUpdateListingStatusSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,15 @@ export async function PUT(request: NextRequest) {
 
     if (session.user.role !== "ADMIN") {
       return apiError("Admin access required.", 403);
+    }
+
+    const { success } = checkRateLimit(
+      `admin:bulk:${session.user.id}`,
+      RATE_LIMITS.adminAction.limit,
+      RATE_LIMITS.adminAction.windowMs,
+    );
+    if (!success) {
+      return apiError("Too many bulk actions. Please slow down.", 429);
     }
 
     const payload = bulkUpdateListingStatusSchema.parse(await request.json());

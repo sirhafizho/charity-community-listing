@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { createGratitudeNoteSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,15 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     if (!session?.user?.id) {
       return apiError("Authentication required.", 401);
+    }
+
+    const { success } = checkRateLimit(
+      `gratitude:create:${session.user.id}`,
+      5,
+      60_000,
+    );
+    if (!success) {
+      return apiError("Too many requests. Please slow down.", 429);
     }
 
     const { id } = await params;

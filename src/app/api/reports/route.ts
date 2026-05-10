@@ -5,6 +5,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createReportSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
@@ -79,6 +80,15 @@ export async function POST(request: NextRequest) {
 
     if (!session?.user?.id) {
       return apiError("Authentication required.", 401);
+    }
+
+    const { success } = checkRateLimit(
+      `report:create:${session.user.id}`,
+      RATE_LIMITS.createReport.limit,
+      RATE_LIMITS.createReport.windowMs,
+    );
+    if (!success) {
+      return apiError("Too many reports. Please slow down.", 429);
     }
 
     const payload = createReportRequestSchema.parse(await request.json());

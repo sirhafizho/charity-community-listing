@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createClaimSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
@@ -120,6 +121,15 @@ export async function POST(request: NextRequest) {
 
     if (!session?.user?.id) {
       return apiError("Authentication required.", 401);
+    }
+
+    const { success } = checkRateLimit(
+      `claim:create:${session.user.id}`,
+      RATE_LIMITS.createClaim.limit,
+      RATE_LIMITS.createClaim.windowMs,
+    );
+    if (!success) {
+      return apiError("Too many claims. Please slow down.", 429);
     }
 
     const payload = createClaimSchema.parse(await request.json());

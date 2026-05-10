@@ -1,3 +1,5 @@
+import { NextRequest } from "next/server";
+
 const rateLimit = new Map<string, { count: number; resetTime: number }>();
 
 export function checkRateLimit(
@@ -20,6 +22,44 @@ export function checkRateLimit(
   record.count++;
   return { success: true, remaining: limit - record.count };
 }
+
+/** Extract client IP from request headers (works on Vercel and locally) */
+export function getClientIp(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "anonymous"
+  );
+}
+
+/**
+ * Global API rate limit — prevents any single IP from hammering the API.
+ * Returns true if allowed, false if blocked.
+ */
+export function checkGlobalRateLimit(request: NextRequest): boolean {
+  const ip = getClientIp(request);
+  // 100 requests per minute per IP across all endpoints
+  const { success } = checkRateLimit(`global:${ip}`, 100, 60_000);
+  return success;
+}
+
+/** Rate limit config presets for different endpoint types */
+export const RATE_LIMITS = {
+  // Auth: prevent brute force
+  login: { limit: 10, windowMs: 60_000 },
+  register: { limit: 5, windowMs: 60_000 },
+  // Write operations: prevent spam
+  createListing: { limit: 10, windowMs: 60_000 },
+  createClaim: { limit: 10, windowMs: 60_000 },
+  updateClaim: { limit: 20, windowMs: 60_000 },
+  sendMessage: { limit: 30, windowMs: 60_000 },
+  createReport: { limit: 5, windowMs: 60_000 },
+  upload: { limit: 20, windowMs: 60_000 },
+  // Admin: more generous but still capped
+  adminAction: { limit: 60, windowMs: 60_000 },
+  // Read operations: prevent scraping
+  readApi: { limit: 60, windowMs: 60_000 },
+} as const;
 
 if (typeof setInterval !== "undefined") {
   const cleanupInterval = setInterval(() => {

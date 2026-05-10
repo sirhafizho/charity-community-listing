@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { updateClaimStatusSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,15 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     if (!session?.user?.id) {
       return apiError("Authentication required.", 401);
+    }
+
+    const { success } = checkRateLimit(
+      `claim:update:${session.user.id}`,
+      RATE_LIMITS.updateClaim.limit,
+      RATE_LIMITS.updateClaim.windowMs,
+    );
+    if (!success) {
+      return apiError("Too many requests. Please slow down.", 429);
     }
 
     const { id } = await params;

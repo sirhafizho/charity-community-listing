@@ -1,23 +1,24 @@
 import { hash } from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 import { createUserSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const { success } = checkRateLimit(`register:${ip}`, 20, 60_000);
+    const ip = getClientIp(request);
+    const { success } = checkRateLimit(
+      `register:${ip}`,
+      RATE_LIMITS.register.limit,
+      RATE_LIMITS.register.windowMs,
+    );
 
     if (!success) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
-        { status: 429 },
-      );
+      return apiError("Too many registration attempts. Please try again later.", 429);
     }
 
     const payload = createUserSchema.parse(await request.json());

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, handleApiError } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { updateListingStatusSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,15 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     if (session.user.role !== "ADMIN") {
       return apiError("Admin access required.", 403);
+    }
+
+    const { success } = checkRateLimit(
+      `admin:action:${session.user.id}`,
+      RATE_LIMITS.adminAction.limit,
+      RATE_LIMITS.adminAction.windowMs,
+    );
+    if (!success) {
+      return apiError("Too many admin actions. Please slow down.", 429);
     }
 
     const { id } = await params;
