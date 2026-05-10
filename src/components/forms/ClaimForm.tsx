@@ -73,14 +73,23 @@ export default function ClaimForm({ listingId, disabled = false }: ClaimFormProp
         </p>
       </div>
 
-      <textarea
-        value={message}
-        onChange={(event) => setMessage(event.target.value)}
-        rows={5}
-        maxLength={500}
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-        placeholder="Optional message to the donor"
-      />
+      <div className="space-y-2">
+        <label
+          htmlFor="claim-message"
+          className="block text-sm font-medium text-slate-700 dark:text-slate-200"
+        >
+          Message to the donor
+        </label>
+        <textarea
+          id="claim-message"
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          rows={5}
+          maxLength={500}
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          placeholder="Optional message to the donor"
+        />
+      </div>
 
       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
         <span>Optional note</span>

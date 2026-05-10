@@ -172,7 +172,14 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
       <section className="overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="relative aspect-[16/9] bg-slate-100 dark:bg-slate-900">
           {listing.image ? (
-            <Image src={listing.image} alt={listing.title} fill className="object-cover" />
+            <Image
+              src={listing.image}
+              alt={listing.title}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 700px"
+              className="object-cover"
+            />
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-100 via-teal-100 to-cyan-100 text-8xl text-emerald-700 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 dark:text-emerald-300">
               🎁

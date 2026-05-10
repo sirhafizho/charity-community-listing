@@ -1,8 +1,9 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { apiError, apiSuccess, getPaginationParams, handleApiError } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { createListingSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +68,15 @@ export async function POST(request: NextRequest) {
 
     if (!session?.user?.id) {
       return apiError("Authentication required.", 401);
+    }
+
+    const { success } = checkRateLimit(`listing:create:${session.user.id}`, 10, 60_000);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 },
+      );
     }
 
     const payload = createListingSchema.parse(await request.json());

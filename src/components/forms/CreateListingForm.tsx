@@ -283,9 +283,10 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <label className="space-y-2 md:col-span-2">
+        <label htmlFor="listing-title" className="space-y-2 md:col-span-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Title</span>
           <input
+            id="listing-title"
             value={title}
             onChange={(event) => {
               setTitle(event.target.value);
@@ -301,9 +302,10 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           <FieldErrorList messages={fieldErrors.title} id="listing-title-error" />
         </label>
 
-        <label className="space-y-2 md:col-span-2">
+        <label htmlFor="listing-description" className="space-y-2 md:col-span-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Description</span>
           <textarea
+            id="listing-description"
             value={description}
             onChange={(event) => {
               setDescription(event.target.value);
@@ -320,9 +322,10 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           <FieldErrorList messages={fieldErrors.description} id="listing-description-error" />
         </label>
 
-        <label className="space-y-2">
+        <label htmlFor="listing-category" className="space-y-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Category</span>
           <select
+            id="listing-category"
             value={categoryId}
             onChange={(event) => {
               setCategoryId(event.target.value);
@@ -347,9 +350,10 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           <FieldErrorList messages={fieldErrors.categoryId} id="listing-category-error" />
         </label>
 
-        <label className="space-y-2">
+        <label htmlFor="listing-location" className="space-y-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Location</span>
           <input
+            id="listing-location"
             value={location}
             onChange={(event) => {
               setLocation(event.target.value);
@@ -365,9 +369,10 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           <FieldErrorList messages={fieldErrors.location} id="listing-location-error" />
         </label>
 
-        <label className="space-y-2">
+        <label htmlFor="listing-urgency" className="space-y-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Urgency</span>
           <select
+            id="listing-urgency"
             value={urgency}
             onChange={(event) => {
               const nextUrgency = event.target.value as ListingUrgency;
@@ -380,6 +385,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
                 clearFieldError("expiresAt");
               }
             }}
+            required
             aria-invalid={fieldErrors.urgency ? "true" : "false"}
             aria-describedby={fieldErrors.urgency ? "listing-urgency-error" : undefined}
             className={inputClassName(Boolean(fieldErrors.urgency))}
@@ -394,9 +400,10 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
         </label>
 
         {urgency === "EXPIRING" ? (
-          <label className="space-y-2">
+          <label htmlFor="listing-expires-at" className="space-y-2">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Expiry date</span>
             <input
+              id="listing-expires-at"
               type="date"
               value={expiresAt}
               min={minimumExpiryDate}
@@ -416,9 +423,10 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           </label>
         ) : null}
 
-        <label className="space-y-2 md:col-span-2">
+        <label htmlFor="image-upload" className="space-y-2 md:col-span-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Image</span>
           <input
+            id="image-upload"
             type="file"
             accept=".jpg,.jpeg,.png,.gif,.webp"
             onChange={handleFileChange}
