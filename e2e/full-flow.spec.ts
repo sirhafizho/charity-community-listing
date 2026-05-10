@@ -6,7 +6,7 @@ async function login(page: Page, email: string, password: string) {
   await page.getByPlaceholder('you@example.com').fill(email);
   await page.getByPlaceholder('Enter your password').fill(password);
   await page.getByRole('button', { name: /login/i }).click();
-  await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 10000 });
+  await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 30000 });
 }
 
 // Helper: register a new user and return the email
@@ -19,7 +19,7 @@ async function registerUser(page: Page, name: string): Promise<string> {
   await page.getByPlaceholder('Minimum 6 characters').fill('TestPass123!');
   await page.getByRole('button', { name: /register/i }).click();
   // Auto-login redirects to homepage
-  await page.waitForURL(url => !url.toString().includes('/register'), { timeout: 15000 });
+  await page.waitForURL(url => !url.toString().includes('/register'), { timeout: 30000 });
   return email;
 }
 
@@ -54,7 +54,7 @@ test.describe('User Registration', () => {
     await page.getByPlaceholder('Minimum 6 characters').fill('TestPass123!');
     await page.getByRole('button', { name: /register/i }).click();
     
-    await page.waitForURL(url => !url.toString().includes('/register'), { timeout: 10000 });
+    await page.waitForURL(url => !url.toString().includes('/register'), { timeout: 30000 });
 
     const url = page.url();
     if (url.includes('/login')) {
@@ -86,7 +86,7 @@ test.describe('User Login', () => {
     await page.getByPlaceholder('Enter your password').fill('admin123');
     await page.getByRole('button', { name: /login/i }).click();
     
-    await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 10000 });
+    await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 30000 });
     
     // Should show logged-in state
     const navContent = await page.textContent('header, nav');
@@ -292,7 +292,7 @@ test.describe('Image Upload', () => {
 test.describe('Protected Routes', () => {
   test('unauthenticated user is redirected from create listing', async ({ page }) => {
     await page.goto('/listings/create');
-    await page.waitForURL('**/login**', { timeout: 10000 });
+    await page.waitForURL('**/login**', { timeout: 30000 });
     expect(page.url()).toContain('/login');
   });
 

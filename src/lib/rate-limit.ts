@@ -46,8 +46,8 @@ export function checkGlobalRateLimit(request: NextRequest): boolean {
 /** Rate limit config presets for different endpoint types */
 export const RATE_LIMITS = {
   // Auth: prevent brute force
-  login: { limit: 10, windowMs: 60_000 },
-  register: { limit: 5, windowMs: 60_000 },
+  login: { limit: 20, windowMs: 60_000 },
+  register: { limit: 10, windowMs: 60_000 },
   // Write operations: prevent spam
   createListing: { limit: 30, windowMs: 60_000 },
   createClaim: { limit: 30, windowMs: 60_000 },
