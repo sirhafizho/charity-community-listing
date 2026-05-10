@@ -87,6 +87,12 @@ jobs:
       - run: npx prisma generate
       - run: npx prisma db push
       - run: npm run prisma:seed
+      - run: npm run build
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install chromium --with-deps
       - name: Run E2E tests
         run: npx playwright test
