@@ -4,6 +4,27 @@ A full-stack charity community listing platform where users can post items for d
 
 **🌐 Live Demo:** [charity-community-listing.vercel.app](https://charity-community-listing.vercel.app)
 
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/homepage.png" alt="Homepage" width="400"/><br/><em>Homepage — Browse listings</em></td>
+    <td><img src="docs/screenshots/homepage-dark.png" alt="Dark Mode" width="400"/><br/><em>Dark Mode</em></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/admin-panel.png" alt="Admin Panel" width="400"/><br/><em>Admin Panel — Approve/Reject listings</em></td>
+    <td><img src="docs/screenshots/create-listing.png" alt="Create Listing" width="400"/><br/><em>Create Listing — With image upload & tags</em></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/listing-detail.png" alt="Listing Detail" width="400"/><br/><em>Listing Detail — Claim & messaging</em></td>
+    <td><img src="docs/screenshots/dashboard.png" alt="Dashboard" width="400"/><br/><em>Dashboard — Impact stats & badges</em></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/login.png" alt="Login" width="400"/><br/><em>Login Page</em></td>
+    <td><img src="docs/screenshots/mobile-homepage.png" alt="Mobile" width="200"/><br/><em>Mobile Responsive</em></td>
+  </tr>
+</table>
+
 ## ✨ Features
 
 ### Core
