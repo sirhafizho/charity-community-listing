@@ -26,6 +26,34 @@ const extensionByMimeType: Record<string, string> = {
   "image/gif": ".gif",
 };
 
+const useVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
+
+async function uploadToVercelBlob(file: File): Promise<string> {
+  const { put } = await import("@vercel/blob");
+  const blob = await put(file.name, file, {
+    access: "public",
+    addRandomSuffix: true,
+  });
+  return blob.url;
+}
+
+async function uploadToLocalFs(file: File): Promise<string> {
+  const uploadsDirectory = path.join(process.cwd(), "public", "uploads");
+  await mkdir(uploadsDirectory, { recursive: true });
+
+  const originalExtension = path.extname(file.name).toLowerCase();
+  const safeExtension =
+    originalExtension && /^[.a-z0-9]+$/i.test(originalExtension)
+      ? originalExtension
+      : extensionByMimeType[file.type] ?? ".bin";
+  const fileName = `${Date.now()}-${randomUUID()}${safeExtension}`;
+  const filePath = path.join(uploadsDirectory, fileName);
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  await writeFile(filePath, buffer);
+  return `/uploads/${fileName}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -62,24 +90,12 @@ export async function POST(request: NextRequest) {
       return apiError("Only image uploads are allowed.", 415);
     }
 
-    const uploadsDirectory = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDirectory, { recursive: true });
-
-    const originalExtension = path.extname(file.name).toLowerCase();
-    const safeExtension =
-      originalExtension && /^[.a-z0-9]+$/i.test(originalExtension)
-        ? originalExtension
-        : extensionByMimeType[file.type] ?? ".bin";
-    const fileName = `${Date.now()}-${randomUUID()}${safeExtension}`;
-    const filePath = path.join(uploadsDirectory, fileName);
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    await writeFile(filePath, buffer);
+    const url = useVercelBlob
+      ? await uploadToVercelBlob(file)
+      : await uploadToLocalFs(file);
 
     return apiSuccess(
-      {
-        url: `/uploads/${fileName}`,
-      },
+      { url },
       {
         status: 201,
         message: "Image uploaded successfully.",

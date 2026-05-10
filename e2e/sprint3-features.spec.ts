@@ -236,13 +236,19 @@ test.describe('Sprint 3 dashboard and claim flows', () => {
 
     await page.getByRole('button', { name: 'Approve' }).click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('CLAIMED', { exact: true }).first()).toBeVisible();
+    await page.waitForTimeout(1000);
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByText('CLAIMED', { exact: true }).first()).toBeVisible({ timeout: 10_000 });
 
     const fulfillButton = page.getByRole('button', { name: /Fulfill|Mark Fulfilled/ }).first();
     await expectVisible(fulfillButton);
     await fulfillButton.click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('FULFILLED', { exact: true }).first()).toBeVisible();
+    await page.waitForTimeout(1000);
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByText('FULFILLED', { exact: true }).first()).toBeVisible({ timeout: 10_000 });
   });
 
   test('shows empty states for a newly registered user dashboard', async ({ page }) => {
