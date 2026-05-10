@@ -59,3 +59,4 @@ public/uploads/*
 test-results/
 playwright-report/
 .next-dev.log
+.env*.local
