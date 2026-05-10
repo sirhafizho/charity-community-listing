@@ -129,9 +129,9 @@ npx playwright test
 npx playwright test --ui
 ```
 
-**Test Coverage:** 140 total tests
+**Test Coverage:** 148 total tests
 - **62 unit tests** — API routes, validations, edge cases
-- **78 E2E tests** — Full browser flows including registration, login, listing creation, claim lifecycle, admin approval, reports, impact dashboard, dark mode, search/filter, and more
+- **86 E2E tests** — Full browser flows including registration, login, listing creation, claim lifecycle, admin approval, state machine edge cases, reports, impact dashboard, dark mode, search/filter, and more
 
 ## 📡 API Endpoints
 
@@ -178,10 +178,51 @@ Every push to `main` runs through GitHub Actions:
 - Input validation with Zod on all endpoints
 - File upload type & size validation (5MB max, images only)
 - SVG uploads blocked (XSS prevention)
-- Rate limiting on sensitive endpoints (uploads, auth)
+- Comprehensive rate limiting on all API endpoints (per-user and per-IP)
 - Race condition protection on claims (DB unique constraint + transaction)
+- State machine guards on listing/claim lifecycle (prevents invalid transitions)
 - Protected admin routes via middleware
 - CSRF protection via NextAuth
+
+## 🤖 Built With AI
+
+This project was built entirely with AI assistance as an experiment in AI-driven software engineering.
+
+### Models Used
+| Model | Role |
+|-------|------|
+| **Claude Opus 4.6** | Primary orchestrator — architecture, implementation, debugging, deployment |
+| **Claude Sonnet 4.5** | Sub-agent tasks — code review, research, feature implementation |
+| **Claude Haiku 4.5** | Fast exploration — codebase search, file analysis, quick fixes |
+
+### MCP Servers (Model Context Protocol)
+| MCP | Purpose |
+|-----|---------|
+| **GitHub MCP** | Repository management, PR workflows, Actions monitoring, code search |
+| **Open Design MCP** | UI/UX design reference and component styling |
+| **Serena (Oraios)** | Code intelligence — symbol lookup, find references, rename refactoring, diagnostics |
+| **Obsidian Vault MCP** | Knowledge management and session documentation |
+
+### Methodology: BMAD (Build, Measure, Analyze, Deploy)
+- **Sprint-based workflow** — Features planned and tracked in structured sprints
+- **Divergence/Convergence** — Multiple sub-agents explore solutions in parallel, best approach selected
+- **Adversarial Review** — Code reviewed by separate agent after each feature for bugs and edge cases
+- **Test-Driven Validation** — Every feature backed by unit + E2E tests before merge
+- **Continuous Deployment** — Auto-deploy pipeline ensures every commit is production-ready
+
+### AI Engineering Stats
+- **86 E2E tests** + **62 unit tests** = 148 total automated tests
+- **22 API endpoints** with full CRUD, state machines, and rate limiting
+- **6-stage CI/CD pipeline** — lint, typecheck, build, unit tests, E2E, deploy
+- **Full state machine** for listing + claim lifecycle with transition guards
+- **Zero manual code** — 100% AI-generated from requirements to deployment
+
+### Skills & Techniques
+- **Parallel sub-agents** for independent research and implementation tasks
+- **Session checkpoints** for context preservation across long conversations
+- **SQL-based todo tracking** for sprint management
+- **Playwright E2E** for browser-level validation of all user flows
+- **Rate limiting** designed to protect demo site from abuse while allowing CI
 
 ## 📄 License
 
@@ -189,4 +230,4 @@ MIT
 
 ---
 
-Built with ❤️ for the community.
+Built with ❤️ for the community — powered by AI.
