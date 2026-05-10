@@ -152,7 +152,6 @@ test.describe('Authenticated User Flows', () => {
     // Click on a listing link (listing IDs start with 'c' since they use cuid)
     const listingLink = page.locator('a[href^="/listings/"]').first();
     await expect(listingLink).toBeVisible({ timeout: 5000 });
-    const href = await listingLink.getAttribute('href');
     await listingLink.click();
     await page.waitForTimeout(2000);
     

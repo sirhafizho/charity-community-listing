@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
-import { authSecret } from "@/lib/auth-secret";
+import { auth } from "@/lib/auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -12,18 +11,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({
-    req: request,
-    secret: authSecret,
-  });
+  const session = await auth();
 
-  if (!token?.sub && !token?.id) {
+  if (!session?.user?.id) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", `${pathname}${search}`);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (requiresAdmin && token.role !== "ADMIN") {
+  if (requiresAdmin && session.user.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

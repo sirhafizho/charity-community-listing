@@ -210,8 +210,6 @@ test.describe('UI Regression: Mobile Navigation', () => {
     await page.goto('/');
     await page.waitForTimeout(1000);
 
-    // Desktop nav should be hidden
-    const desktopNav = page.locator('nav.hidden.md\\:flex, nav.hidden');
     // Mobile hamburger button should exist
     const menuButton = page.getByRole('button', { name: /menu|toggle|navigation/i }).or(
       page.locator('button.md\\:hidden, [aria-label*="menu"], [aria-label*="Menu"]')

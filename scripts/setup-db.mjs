@@ -4,15 +4,17 @@
  *
  * Triggered automatically by the `vercel-build` npm script.
  */
-const fs = require('fs');
-const path = require('path');
+import { readFileSync, writeFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const schemaPath = path.join(__dirname, '..', 'prisma', 'schema.prisma');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const schemaPath = join(__dirname, '..', 'prisma', 'schema.prisma');
 
 if (process.env.USE_POSTGRES === 'true' || process.env.VERCEL) {
-  let schema = fs.readFileSync(schemaPath, 'utf8');
+  let schema = readFileSync(schemaPath, 'utf8');
   schema = schema.replace('provider = "sqlite"', 'provider = "postgresql"');
-  fs.writeFileSync(schemaPath, schema);
+  writeFileSync(schemaPath, schema);
   console.log('✅ Switched Prisma provider to PostgreSQL for production');
 } else {
   console.log('ℹ️  Keeping SQLite provider for local development');

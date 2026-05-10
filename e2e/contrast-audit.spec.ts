@@ -68,7 +68,6 @@ function contrastRatio(fg: string, bg: string): number | null {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-const WCAG_AA_NORMAL = 4.5;
 const WCAG_AA_LARGE = 3.0;
 
 test.describe('Contrast Audit: Light Mode', () => {
