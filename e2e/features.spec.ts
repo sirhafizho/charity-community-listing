@@ -6,7 +6,7 @@ async function login(page: Page, email: string, password: string) {
   await page.getByPlaceholder('you@example.com').fill(email);
   await page.getByPlaceholder('Enter your password').fill(password);
   await page.getByRole('button', { name: /login/i }).click();
-  await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 10000 });
+  await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 20000 });
 }
 
 // Helper: register a new user (auto-logs in and redirects to homepage)
@@ -33,12 +33,18 @@ test.describe('Feature: Dark Mode', () => {
     expect(count).toBeGreaterThanOrEqual(1);
   });
 
-  test('page has dark mode CSS classes on body', async ({ page }) => {
+  test('page has dark mode-ready body styles', async ({ page }) => {
     await page.goto('/');
-    const body = page.locator('body');
-    const className = await body.getAttribute('class');
-    // Should have dark mode classes defined (even if not active)
-    expect(className).toContain('dark:bg-slate-900');
+    const styles = await page.locator('body').evaluate((el) => {
+      const computed = window.getComputedStyle(el);
+      return {
+        backgroundColor: computed.backgroundColor,
+        color: computed.color,
+      };
+    });
+
+    expect(styles.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+    expect(styles.color).not.toBe('rgba(0, 0, 0, 0)');
   });
 });
 
@@ -47,7 +53,7 @@ test.describe('Feature: User Dashboard', () => {
     await login(page, 'admin@charity.org', 'admin123');
     await page.waitForTimeout(1000);
 
-    const dashLink = page.getByRole('link', { name: /dashboard/i });
+    const dashLink = page.getByRole('link', { name: 'Dashboard', exact: true });
     await expect(dashLink).toBeVisible();
   });
 

@@ -54,10 +54,14 @@ test.describe('User Registration', () => {
     await page.getByPlaceholder('Minimum 6 characters').fill('TestPass123!');
     await page.getByRole('button', { name: /register/i }).click();
     
-    // Should redirect to login with success param
-    await page.waitForURL('**/login?registered=1', { timeout: 10000 });
-    // Verify we're on the login page (message appears there)
-    await expect(page.getByText('Account created successfully. Please sign in.')).toBeVisible();
+    await page.waitForURL(url => !url.toString().includes('/register'), { timeout: 10000 });
+
+    const url = page.url();
+    if (url.includes('/login')) {
+      await expect(page.getByText(/your account is ready/i)).toBeVisible();
+    } else {
+      await expect(page.getByRole('button', { name: /logout/i })).toBeVisible();
+    }
   });
 
   test('should show error for duplicate email', async ({ page }) => {

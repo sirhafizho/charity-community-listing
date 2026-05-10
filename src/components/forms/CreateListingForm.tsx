@@ -74,7 +74,7 @@ function FieldErrorList({ messages, id }: { messages?: string[]; id?: string }) 
   }
 
   return (
-    <ul id={id} className="space-y-1 text-sm text-rose-600">
+    <ul id={id} className="space-y-1 text-sm text-rose-600 dark:text-rose-300">
       {messages.map((message) => (
         <li key={message}>{message}</li>
       ))}
@@ -446,7 +446,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
       ) : null}
 
       {formMessages.length > 0 ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-100" role="alert">
           <p className="font-semibold">Please fix the following:</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {formMessages.map((message) => (
@@ -459,7 +459,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
       <button
         type="submit"
         disabled={isSubmitting || categories.length === 0}
-        className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400 dark:disabled:bg-slate-600"
       >
         {isSubmitting ? "Submitting..." : "Submit listing"}
       </button>

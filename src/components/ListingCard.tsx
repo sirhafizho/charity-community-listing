@@ -124,7 +124,7 @@ export default function ListingCard({ listing, showStatus = false }: ListingCard
 
           <Link
             href={`/listings/${listing.id}`}
-            className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+            className="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 dark:bg-emerald-500 dark:text-white dark:hover:bg-emerald-400"
           >
             View listing
           </Link>

@@ -70,6 +70,8 @@ export default function ListingFilter({
       </div>
 
       <form
+        action="/"
+        method="get"
         onSubmit={(event) => {
           event.preventDefault();
           applyFilters(search, selectedCategory);
@@ -80,6 +82,7 @@ export default function ListingFilter({
           <span className="text-sm font-medium text-emerald-50">Search donations</span>
           <input
             type="search"
+            name="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Books, coats, desks, Brooklyn…"

@@ -315,7 +315,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-              <thead className="bg-slate-50 dark:bg-slate-850">
+              <thead className="bg-slate-50 dark:bg-slate-900">
                 <tr>
                   <th scope="col" className="px-4 py-4 text-left">
                     <input
@@ -431,7 +431,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
                             type="button"
                             onClick={() => void handleListingUpdate(listing.id, "APPROVED")}
                             disabled={loadingKey === `listing-${listing.id}-APPROVED` || listing.status === "APPROVED"}
-                            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-600"
                           >
                             Approve
                           </button>
@@ -439,7 +439,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
                             type="button"
                             onClick={() => void handleListingUpdate(listing.id, "REJECTED")}
                             disabled={loadingKey === `listing-${listing.id}-REJECTED` || listing.status === "REJECTED"}
-                            className="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                            className="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-600"
                           >
                             Reject
                           </button>
@@ -470,7 +470,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
           <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                <thead className="bg-slate-50 dark:bg-slate-850">
+                <thead className="bg-slate-50 dark:bg-slate-900">
                   <tr>
                     <th
                       scope="col"
@@ -542,7 +542,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
                             type="button"
                             onClick={() => void handleClaimUpdate(claim.id, "APPROVED")}
                             disabled={loadingKey === `claim-${claim.id}-APPROVED`}
-                            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-600"
                           >
                             Approve
                           </button>
@@ -550,7 +550,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
                             type="button"
                             onClick={() => void handleClaimUpdate(claim.id, "REJECTED")}
                             disabled={loadingKey === `claim-${claim.id}-REJECTED`}
-                            className="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                            className="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-600"
                           >
                             Reject
                           </button>
@@ -566,7 +566,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
       </section>
 
       {selectedCount > 0 ? (
-        <div className="fixed inset-x-4 bottom-6 z-50 mx-auto flex w-full max-w-3xl flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-850 sm:flex-row sm:items-center sm:justify-between">
+        <div className="fixed inset-x-4 bottom-6 z-50 mx-auto flex w-full max-w-3xl flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
             {selectedCount} selected
           </p>
@@ -575,7 +575,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
               type="button"
               onClick={() => void handleBulkListingUpdate("APPROVED")}
               disabled={loadingKey === "bulk-APPROVED"}
-              className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-600"
             >
               Approve All
             </button>
@@ -583,7 +583,7 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
               type="button"
               onClick={() => void handleBulkListingUpdate("REJECTED")}
               disabled={loadingKey === "bulk-REJECTED"}
-              className="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-600"
             >
               Reject All
             </button>

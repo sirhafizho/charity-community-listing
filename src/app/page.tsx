@@ -143,7 +143,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/listings/create"
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-emerald-700 shadow-lg transition hover:bg-emerald-50"
+                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-emerald-700 shadow-lg transition hover:bg-emerald-50 dark:bg-emerald-500 dark:text-white dark:hover:bg-emerald-400"
               >
                 Share a donation
               </Link>
