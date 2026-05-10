@@ -1,6 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-import { auth } from "@/lib/auth";
+const secret =
+  process.env.AUTH_SECRET ??
+  process.env.NEXTAUTH_SECRET ??
+  (process.env.NODE_ENV !== "production"
+    ? "charity-community-listing-development-secret"
+    : undefined);
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -11,15 +17,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = await auth();
+  const isSecure = request.url.startsWith("https://");
+  const cookieName = isSecure
+    ? "__Secure-authjs.session-token"
+    : "authjs.session-token";
 
-  if (!session?.user?.id) {
+  const token = await getToken({
+    req: request,
+    secret,
+    cookieName,
+  });
+
+  if (!token?.sub && !token?.id) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", `${pathname}${search}`);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (requiresAdmin && session.user.role !== "ADMIN") {
+  if (requiresAdmin && token.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
