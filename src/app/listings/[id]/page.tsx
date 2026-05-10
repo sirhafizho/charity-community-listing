@@ -352,6 +352,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               alt={listing.title}
               fill
               priority
+              unoptimized
               sizes="(max-width: 768px) 100vw, 700px"
               className="object-cover"
             />
