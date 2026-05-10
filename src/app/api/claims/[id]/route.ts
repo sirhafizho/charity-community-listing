@@ -92,6 +92,46 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       return apiError("Claim not found.", 404);
     }
 
+    // State transition guard for claims
+    const allowedClaimTransitions: Record<string, string[]> = {
+      PENDING: ["APPROVED", "REJECTED"],
+      APPROVED: ["FULFILLED", "REJECTED"],
+      // REJECTED and FULFILLED are terminal
+    };
+
+    const allowedNext = allowedClaimTransitions[claim.status];
+    if (!allowedNext || !allowedNext.includes(payload.status)) {
+      return apiError(
+        `Cannot change claim from ${claim.status} to ${payload.status}. ${
+          claim.status === "FULFILLED"
+            ? "This claim has already been fulfilled."
+            : claim.status === "REJECTED"
+              ? "This claim has already been rejected."
+              : "Invalid status transition."
+        }`,
+        409,
+      );
+    }
+
+    // Prevent approving a claim if the listing already has an approved/claimed claim
+    if (payload.status === "APPROVED") {
+      const existingApproved = await prisma.claim.findFirst({
+        where: {
+          listingId: claim.listingId,
+          id: { not: id },
+          status: { in: ["APPROVED", "FULFILLED"] },
+        },
+        select: { id: true },
+      });
+
+      if (existingApproved) {
+        return apiError(
+          "This listing already has an approved claim. Only one claim can be active at a time.",
+          409,
+        );
+      }
+    }
+
     const canManageClaim =
       session.user.role === "ADMIN" || session.user.id === claim.listing.userId;
 

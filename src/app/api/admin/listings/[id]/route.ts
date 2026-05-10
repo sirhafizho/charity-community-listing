@@ -34,6 +34,26 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       return apiError("Listing not found.", 404);
     }
 
+    // State transition guard: only allow valid transitions
+    const allowedTransitions: Record<string, string[]> = {
+      PENDING: ["APPROVED", "REJECTED"],
+      APPROVED: ["REJECTED"],    // Admin can reject, but claim system handles CLAIMED
+      REJECTED: ["APPROVED"],    // Admin can re-approve a rejected listing
+      // CLAIMED and FULFILLED are terminal for admin — only claim lifecycle can change them
+    };
+
+    const allowed = allowedTransitions[listing.status];
+    if (!allowed || !allowed.includes(payload.status)) {
+      return apiError(
+        `Cannot change listing from ${listing.status} to ${payload.status}. ${
+          listing.status === "CLAIMED" || listing.status === "FULFILLED"
+            ? "This listing is already in the claim lifecycle."
+            : "Invalid status transition."
+        }`,
+        409,
+      );
+    }
+
     const updatedListing = await prisma.listing.update({
       where: { id },
       data: {
