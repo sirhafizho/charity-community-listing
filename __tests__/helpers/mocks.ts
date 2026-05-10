@@ -28,6 +28,9 @@ export const mockPrisma = {
     create: jest.fn(),
     update: jest.fn(),
   },
+  tag: {
+    upsert: jest.fn(),
+  },
   notification: {
     create: jest.fn(),
   },

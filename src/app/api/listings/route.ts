@@ -91,6 +91,15 @@ export async function POST(request: NextRequest) {
       return apiError("Category not found.", 404);
     }
 
+    // Ensure tags exist first, then connect — avoids SQLite FK race with connectOrCreate
+    if (normalizedTags.length > 0) {
+      await Promise.all(
+        normalizedTags.map((tag) =>
+          prisma.tag.upsert({ where: { name: tag }, update: {}, create: { name: tag } }),
+        ),
+      );
+    }
+
     const listing = await prisma.listing.create({
       data: {
         title: payload.title,
@@ -103,31 +112,13 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         status: "PENDING",
         ...(normalizedTags.length > 0
-          ? {
-              tags: {
-                connectOrCreate: normalizedTags.map((tag) => ({
-                  where: { name: tag },
-                  create: { name: tag },
-                })),
-              },
-            }
+          ? { tags: { connect: normalizedTags.map((tag) => ({ name: tag })) } }
           : {}),
       },
       include: {
         category: true,
-        tags: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        tags: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, email: true } },
       },
     });
 

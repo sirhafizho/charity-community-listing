@@ -143,6 +143,7 @@ describe("/api/listings", () => {
 
     mockAuth.mockResolvedValue(createSession({ id: "user-1" }));
     mockPrisma.category.findUnique.mockResolvedValue({ id: "cat-1", name: "Clothing" });
+    mockPrisma.tag.upsert.mockResolvedValue({ id: "tag-1", name: "winter" });
     mockPrisma.listing.create.mockResolvedValue(createdListing);
 
     const response = await createListing(
@@ -176,15 +177,9 @@ describe("/api/listings", () => {
         urgency: "NORMAL",
         expiresAt: null,
         tags: {
-          connectOrCreate: [
-            {
-              where: { name: "winter" },
-              create: { name: "winter" },
-            },
-            {
-              where: { name: "kids" },
-              create: { name: "kids" },
-            },
+          connect: [
+            { name: "winter" },
+            { name: "kids" },
           ],
         },
       },
