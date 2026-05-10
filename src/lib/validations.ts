@@ -30,6 +30,19 @@ const optionalText = (maxLength: number) =>
     z.string().max(maxLength).optional(),
   );
 
+const tagListSchema = z.preprocess(
+  (value) => {
+    if (!Array.isArray(value)) {
+      return value;
+    }
+
+    return value
+      .map((tag) => (typeof tag === "string" ? tag.trim() : tag))
+      .filter((tag): tag is string => typeof tag === "string" && tag.length > 0);
+  },
+  z.array(z.string().trim().min(1).max(30)).max(10).optional().default([]),
+);
+
 export const createListingSchema = z.object({
   title: z.string().trim().min(3, "Title must be at least 3 characters.").max(120),
   description: z
@@ -52,6 +65,7 @@ export const createListingSchema = z.object({
     z.coerce.date().optional(),
   ),
   image: imageSchema,
+  tags: tagListSchema,
 });
 
 export const updateListingSchema = createListingSchema

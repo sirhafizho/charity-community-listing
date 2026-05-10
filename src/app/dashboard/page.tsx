@@ -20,7 +20,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const params = await searchParams;
   const showCreatedNotice = typeof params.created === "string" && params.created === "1";
 
-  const [listings, claims] = await prisma.$transaction([
+  const [listings, claims, incomingClaims] = await prisma.$transaction([
     prisma.listing.findMany({
       where: { userId: session.user.id },
       include: {
@@ -45,6 +45,14 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.claim.findMany({
+      where: { listing: { userId: session.user.id } },
+      include: {
+        listing: { select: { id: true, title: true } },
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
   const stats = {
@@ -53,6 +61,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     pendingListings: listings.filter((listing) => listing.status === "PENDING").length,
     claimsMade: claims.length,
     approvedClaims: claims.filter((claim) => claim.status === "APPROVED").length,
+    incomingClaims: incomingClaims.length,
+    pendingIncoming: incomingClaims.filter((claim) => claim.status === "PENDING").length,
   };
 
   const serializedListings = listings.map((listing) => ({
@@ -69,6 +79,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     createdAt: claim.createdAt.toISOString(),
     message: claim.message,
     listing: claim.listing,
+  }));
+
+  const serializedIncomingClaims = incomingClaims.map((claim) => ({
+    id: claim.id,
+    status: claim.status as "PENDING" | "APPROVED" | "REJECTED",
+    createdAt: claim.createdAt.toISOString(),
+    message: claim.message,
+    listing: claim.listing,
+    user: claim.user,
   }));
 
   return (
@@ -92,7 +111,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </div>
       ) : null}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <p className="text-sm text-slate-500 dark:text-slate-300">Total listings</p>
           <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-slate-100">{stats.totalListings}</p>
@@ -109,13 +128,18 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           <p className="text-sm text-slate-500 dark:text-slate-300">Claims made</p>
           <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-slate-100">{stats.claimsMade}</p>
         </div>
+        <div className="rounded-[1.75rem] border border-sky-200 bg-sky-50 p-5 shadow-sm dark:border-sky-500/30 dark:bg-sky-500/10">
+          <p className="text-sm text-sky-700 dark:text-sky-200">Incoming claims</p>
+          <p className="mt-3 text-3xl font-semibold text-sky-700 dark:text-sky-100">{stats.incomingClaims}</p>
+          <p className="mt-1 text-xs text-sky-600 dark:text-sky-200/90">{stats.pendingIncoming} pending review</p>
+        </div>
         <div className="rounded-[1.75rem] border border-teal-200 bg-teal-50 p-5 shadow-sm dark:border-teal-500/30 dark:bg-teal-500/10">
           <p className="text-sm text-teal-700 dark:text-teal-200">Claims approved</p>
           <p className="mt-3 text-3xl font-semibold text-teal-700 dark:text-teal-100">{stats.approvedClaims}</p>
         </div>
       </section>
 
-      <UserDashboard listings={serializedListings} claims={serializedClaims} />
+      <UserDashboard listings={serializedListings} claims={serializedClaims} incomingClaims={serializedIncomingClaims} />
     </div>
   );
 }

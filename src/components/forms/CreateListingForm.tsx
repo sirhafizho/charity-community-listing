@@ -18,7 +18,7 @@ type ValidationDetails = {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-const listingFieldNames = ["title", "description", "categoryId", "location", "urgency", "expiresAt", "image"] as const;
+const listingFieldNames = ["title", "description", "categoryId", "location", "tags", "urgency", "expiresAt", "image"] as const;
 const urgencyOptions: Array<{ description: string; label: string; value: ListingUrgency }> = [
   { value: "NORMAL", label: "Normal", description: "Standard pickup timeline" },
   { value: "URGENT", label: "Urgent", description: "Needs pickup today" },
@@ -82,12 +82,24 @@ function FieldErrorList({ messages, id }: { messages?: string[]; id?: string }) 
   );
 }
 
+function parseTagsInput(value: string) {
+  return Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
 export default function CreateListingForm({ categories }: CreateListingFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [location, setLocation] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
   const [urgency, setUrgency] = useState<ListingUrgency>("NORMAL");
   const [expiresAt, setExpiresAt] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -215,6 +227,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
 
     try {
       const image = await uploadImage();
+      const tags = parseTagsInput(tagsInput);
       const response = await fetch("/api/listings", {
         method: "POST",
         headers: {
@@ -225,6 +238,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           description,
           categoryId,
           location,
+          tags,
           urgency,
           expiresAt: urgency === "EXPIRING" && expiresAt ? expiresAt : undefined,
           image,
@@ -367,6 +381,27 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
             placeholder="Brooklyn, NY"
           />
           <FieldErrorList messages={fieldErrors.location} id="listing-location-error" />
+        </label>
+
+        <label htmlFor="listing-tags" className="space-y-2 md:col-span-2">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Tags</span>
+          <input
+            id="listing-tags"
+            value={tagsInput}
+            onChange={(event) => {
+              setTagsInput(event.target.value);
+              setFormMessages([]);
+              clearFieldError("tags");
+            }}
+            aria-invalid={fieldErrors.tags ? "true" : "false"}
+            aria-describedby={fieldErrors.tags ? "listing-tags-error" : undefined}
+            className={inputClassName(Boolean(fieldErrors.tags))}
+            placeholder="winter, kids, urgent"
+          />
+          <p className="text-xs text-slate-500 dark:text-slate-300">
+            Optional. Add comma-separated tags to help others spot relevant donations faster.
+          </p>
+          <FieldErrorList messages={fieldErrors.tags} id="listing-tags-error" />
         </label>
 
         <label htmlFor="listing-urgency" className="space-y-2">

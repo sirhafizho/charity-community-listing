@@ -24,12 +24,21 @@ type DashboardClaim = {
   };
 };
 
+type DashboardIncomingClaim = DashboardClaim & {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+};
+
 type UserDashboardProps = {
   listings: DashboardListing[];
   claims: DashboardClaim[];
+  incomingClaims: DashboardIncomingClaim[];
 };
 
-type DashboardTab = "listings" | "claims";
+type DashboardTab = "listings" | "claims" | "incomingClaims";
 
 const statusClasses = {
   APPROVED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
@@ -45,15 +54,16 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-export default function UserDashboard({ listings, claims }: UserDashboardProps) {
+export default function UserDashboard({ listings, claims, incomingClaims }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>("listings");
 
   const tabs = useMemo(
     () => [
       { id: "listings" as const, label: "My Listings", count: listings.length },
       { id: "claims" as const, label: "My Claims", count: claims.length },
+      { id: "incomingClaims" as const, label: "Claims on my items", count: incomingClaims.length },
     ],
-    [claims.length, listings.length],
+    [claims.length, incomingClaims.length, listings.length],
   );
 
   return (
@@ -140,7 +150,7 @@ export default function UserDashboard({ listings, claims }: UserDashboardProps) 
             </table>
           </div>
         </div>
-      ) : (
+      ) : activeTab === "claims" ? (
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
@@ -184,6 +194,66 @@ export default function UserDashboard({ listings, claims }: UserDashboardProps) 
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                         <div className="max-w-xs whitespace-pre-wrap">
                           {claim.message?.trim() ? claim.message.slice(0, 120) : "No message provided."}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+              <thead className="bg-slate-50 dark:bg-slate-900">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    Claimer
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    Listing
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    Date
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    Message
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                {incomingClaims.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center text-sm text-slate-500 dark:text-slate-300">
+                      No one has claimed your items yet.
+                    </td>
+                  </tr>
+                ) : (
+                  incomingClaims.map((claim) => (
+                    <tr key={claim.id} className="dark:bg-slate-800">
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">{claim.user.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{claim.user.email}</p>
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100">
+                        <Link href={`/listings/${claim.listing.id}`} className="transition hover:text-emerald-700 dark:hover:text-emerald-300">
+                          {claim.listing.title}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClasses[claim.status]}`}>
+                          {claim.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{formatDate(claim.createdAt)}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                        <div className="max-w-sm whitespace-pre-wrap">
+                          {claim.message?.trim() ? claim.message.slice(0, 160) : "No message provided."}
                         </div>
                       </td>
                     </tr>

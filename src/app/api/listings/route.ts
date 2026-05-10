@@ -80,6 +80,9 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = createListingSchema.parse(await request.json());
+    const normalizedTags = Array.from(
+      new Set(payload.tags.map((tag) => tag.toLowerCase().trim()).filter(Boolean)),
+    );
     const category = await prisma.category.findUnique({
       where: { id: payload.categoryId },
     });
@@ -99,9 +102,25 @@ export async function POST(request: NextRequest) {
         expiresAt: payload.urgency === "EXPIRING" ? (payload.expiresAt ?? null) : null,
         userId: session.user.id,
         status: "PENDING",
+        ...(normalizedTags.length > 0
+          ? {
+              tags: {
+                connectOrCreate: normalizedTags.map((tag) => ({
+                  where: { name: tag },
+                  create: { name: tag },
+                })),
+              },
+            }
+          : {}),
       },
       include: {
         category: true,
+        tags: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,

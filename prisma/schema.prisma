@@ -31,6 +31,12 @@ model Category {
   listings Listing[]
 }
 
+model Tag {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  listings Listing[] @relation("ListingTags")
+}
+
 model Listing {
   id          String   @id @default(cuid())
   title       String
@@ -48,6 +54,7 @@ model Listing {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   claims     Claim[]
+  tags       Tag[]    @relation("ListingTags")
 }
 
 model Claim {

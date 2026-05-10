@@ -22,6 +22,11 @@ export interface Category {
   createdAt: DateLike;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+}
+
 export interface Listing {
   id: string;
   title: string;
@@ -38,6 +43,7 @@ export interface Listing {
   category?: Category;
   user?: Pick<User, "id" | "name" | "email">;
   claims?: Claim[];
+  tags?: Tag[];
 }
 
 export interface Claim {
@@ -71,6 +77,7 @@ export interface CreateListingFormValues {
   urgency?: ListingUrgency;
   expiresAt?: DateLike | null;
   image?: string;
+  tags?: string[];
 }
 
 export type UpdateListingFormValues = Partial<CreateListingFormValues>;
@@ -136,6 +143,7 @@ export interface ListingCardData {
   urgency: ListingUrgency;
   expiresAt?: DateLike | null;
   category?: Pick<Category, "id" | "name"> | null;
+  tags?: Array<{ id: string; name: string }>;
   user?: Pick<User, "id" | "name"> | null;
 }
 

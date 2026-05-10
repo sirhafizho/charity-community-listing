@@ -98,6 +98,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             name: true,
           },
         },
+        tags: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,

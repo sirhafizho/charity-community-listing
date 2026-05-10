@@ -62,6 +62,7 @@ describe("validation schemas", () => {
         categoryId: "cat-1",
         location: "  Boston  ",
         image: "  https://example.com/coat.png  ",
+        tags: [" winter ", "kids", ""],
       }),
     ).toEqual({
       title: "Winter Coat",
@@ -69,6 +70,7 @@ describe("validation schemas", () => {
       categoryId: "cat-1",
       location: "Boston",
       image: "https://example.com/coat.png",
+      tags: ["winter", "kids"],
       urgency: "NORMAL",
     });
 
@@ -78,8 +80,8 @@ describe("validation schemas", () => {
         description: "1234567890",
         categoryId: "cat-1",
         location: "Boston",
-      }).description,
-    ).toBe("1234567890");
+      }).tags,
+    ).toEqual([]);
 
     expect(
       createListingSchema.safeParse({

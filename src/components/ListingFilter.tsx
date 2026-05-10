@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type ListingFilterProps = {
@@ -25,6 +25,7 @@ export default function ListingFilter({
   const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [isPending, startTransition] = useTransition();
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const activeSearch = searchParams.get("search") ?? initialSearch;
   const activeCategory = searchParams.get("category") ?? initialCategory;
@@ -34,6 +35,14 @@ export default function ListingFilter({
     () => categories.find((category) => category.id === activeCategory)?.name ?? "All categories",
     [activeCategory, categories],
   );
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   const applyFilters = (nextSearch: string, nextCategory: string) => {
     const params = new URLSearchParams();
@@ -54,6 +63,11 @@ export default function ListingFilter({
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
     applyFilters(search, categoryId);
   };
 
@@ -74,6 +88,11 @@ export default function ListingFilter({
         method="get"
         onSubmit={(event) => {
           event.preventDefault();
+
+          if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+          }
+
           applyFilters(search, selectedCategory);
         }}
         className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end"
@@ -84,7 +103,18 @@ export default function ListingFilter({
             type="search"
             name="search"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSearch(value);
+
+              if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+              }
+
+              debounceRef.current = setTimeout(() => {
+                applyFilters(value, selectedCategory);
+              }, 300);
+            }}
             placeholder="Books, coats, desks, Brooklyn…"
             className={inputClassName}
           />
@@ -101,6 +131,10 @@ export default function ListingFilter({
         <button
           type="button"
           onClick={() => {
+            if (debounceRef.current) {
+              clearTimeout(debounceRef.current);
+            }
+
             setSearch("");
             setSelectedCategory("");
             applyFilters("", "");

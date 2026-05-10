@@ -134,6 +134,10 @@ describe("/api/listings", () => {
       categoryId: "cat-1",
       userId: "user-1",
       category: { id: "cat-1", name: "Clothing" },
+      tags: [
+        { id: "tag-1", name: "winter" },
+        { id: "tag-2", name: "kids" },
+      ],
       user: { id: "user-1", name: "Owner", email: "owner@example.com" },
     };
 
@@ -148,6 +152,7 @@ describe("/api/listings", () => {
         categoryId: "cat-1",
         location: "  Boston  ",
         image: "/uploads/coat.png",
+        tags: [" Winter ", "Kids"],
       }),
     );
 
@@ -170,9 +175,27 @@ describe("/api/listings", () => {
         status: "PENDING",
         urgency: "NORMAL",
         expiresAt: null,
+        tags: {
+          connectOrCreate: [
+            {
+              where: { name: "winter" },
+              create: { name: "winter" },
+            },
+            {
+              where: { name: "kids" },
+              create: { name: "kids" },
+            },
+          ],
+        },
       },
       include: {
         category: true,
+        tags: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,

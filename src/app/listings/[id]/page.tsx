@@ -85,11 +85,25 @@ function getInitials(name: string) {
   );
 }
 
+function formatDate(value: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(value);
+}
+
 async function getListingById(id: string) {
   return prisma.listing.findUnique({
     where: { id },
     include: {
       category: true,
+      tags: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       user: {
         select: {
           id: true,
@@ -133,21 +147,39 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     notFound();
   }
 
-  const canViewPrivate = session?.user.role === "ADMIN" || session?.user.id === listing.userId;
+  const isOwner = session?.user.id === listing.userId;
+  const canViewPrivate = session?.user.role === "ADMIN" || isOwner;
 
   if (listing.status !== "APPROVED" && !canViewPrivate) {
     notFound();
   }
 
-  const existingClaim = session?.user.id
-    ? await prisma.claim.findFirst({
-        where: {
-          listingId: listing.id,
-          userId: session.user.id,
-        },
-        orderBy: { createdAt: "desc" },
-      })
-    : null;
+  const [existingClaim, ownerClaims] = await Promise.all([
+    session?.user.id
+      ? prisma.claim.findFirst({
+          where: {
+            listingId: listing.id,
+            userId: session.user.id,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+    isOwner
+      ? prisma.claim.findMany({
+          where: { listingId: listing.id },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve([]),
+  ]);
 
   const urgencyMeta = getUrgencyMeta(listing.urgency, listing.expiresAt);
   const donorName = listing.user.name?.trim() || "Community donor";
@@ -239,6 +271,24 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               </div>
             </div>
 
+            {listing.tags.length > 0 ? (
+              <div className="mt-6">
+                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+                  Tags
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {listing.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+                    >
+                      #{tag.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             {urgencyMeta ? (
               <div className={`mt-8 ${urgencyMeta.panelClassName}`}>
                 <h3 className="text-lg font-semibold">Priority notice</h3>
@@ -276,6 +326,59 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               </p>
             </div>
           </div>
+
+          {isOwner ? (
+            <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-700 dark:text-emerald-300">
+                    Owner view
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                    Claims on this item
+                  </h2>
+                </div>
+                <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                  {ownerClaims.length} total
+                </span>
+              </div>
+
+              {ownerClaims.length === 0 ? (
+                <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">No one has claimed this item yet.</p>
+              ) : (
+                <div className="mt-6 space-y-4">
+                  {ownerClaims.map((claim) => (
+                    <div
+                      key={claim.id}
+                      className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900"
+                    >
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-1">
+                          <p className="font-semibold text-slate-900 dark:text-slate-100">{claim.user.name}</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">{claim.user.email}</p>
+                          <Link
+                            href={`/listings/${claim.listingId}`}
+                            className="inline-flex text-sm font-medium text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
+                          >
+                            {listing.title}
+                          </Link>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusClassName(claim.status)}`}>
+                            {claim.status}
+                          </span>
+                          <span>{formatDate(claim.createdAt)}</span>
+                        </div>
+                      </div>
+                      <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        {claim.message?.trim() ? claim.message : "No message provided."}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          ) : null}
         </section>
 
         <aside className="space-y-6 xl:sticky xl:top-24">
