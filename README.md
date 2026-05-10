@@ -1,27 +1,50 @@
 # 🤝 Charity Community Listing System
 
-A simple, full-stack charity community listing platform where users can post items for donation, browse available items by category and location, and claim items they need. Includes an admin approval workflow.
+A full-stack charity community listing platform where users can post items for donation, browse by category and location, claim items they need, and track the full donation lifecycle. Includes admin approval, impact dashboards, reporting, and more.
+
+**🌐 Live Demo:** [charity-community-listing.vercel.app](https://charity-community-listing.vercel.app)
 
 ## ✨ Features
 
-- **📸 Image Upload** — Upload images for listings (JPEG, PNG, WebP, GIF)
-- **📂 Categories** — Organize listings by type (Food, Clothing, Electronics, Furniture, Books, Other)
+### Core
+- **📸 Image Upload** — Upload images for listings (JPEG, PNG, WebP, GIF, up to 5MB)
+- **📂 Categories** — Organize listings by type (Food, Clothing, Electronics, Furniture, Books, Toys, Health, Other)
+- **🏷️ Tags** — Add custom tags for better discoverability
 - **📍 Location** — Add location info to help nearby community members
-- **🙋 Claim Button** — Users can claim items with a message
+- **🔍 Search & Filter** — Search by keyword, filter by category/location/condition with debounced input
+- **🙋 Claim System** — Users can claim items with a message to the donor
 - **🔐 User Authentication** — Register/login with email & password (bcrypt hashed)
 - **👨‍💼 Admin Panel** — Approve or reject listings before they go public
+- **🌗 Dark Mode** — Full dark/light theme toggle
+
+### Claim Lifecycle
+- **Giver-Selects Model** — Donors review all claims and choose who to give to
+- **💬 Claim Messaging** — Chat between donor and claimer (up to 5 messages per claim)
+- **📅 Pickup Scheduling** — Set a pickup date/time when approving a claim
+- **✅ Fulfillment Tracking** — Mark items as fulfilled once handed over
+- **🙏 Gratitude Notes** — Claimers can leave thank-you notes after receiving items
+
+### Community & Safety
+- **🏆 Impact Dashboard** — Track your donation stats and earn badges (First Donation, Generous Giver, Community Hero, etc.)
+- **🔖 Condition Badges** — Items labeled as New, Like New, Good, or Fair
+- **🚩 Report System** — Flag inappropriate listings (Spam, Inappropriate, Scam)
+- **⏰ Auto-Expiry** — Listings older than 30 days are automatically hidden
+- **🔔 Notifications** — Real-time alerts for claim updates, approvals, and more
+- **⏱️ Relative Timestamps** — "2 hours ago" style display with auto-refresh
 
 ## 🛠 Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 14 (App Router) |
+| Framework | Next.js 16 (App Router) |
 | Language | TypeScript |
-| Database | Prisma ORM + SQLite |
+| Database | Prisma ORM + SQLite (local) / PostgreSQL (production) |
 | Auth | NextAuth v5 (Credentials) |
-| Styling | Tailwind CSS |
+| Styling | Tailwind CSS v4 |
 | Validation | Zod |
-| Testing | Jest + React Testing Library |
+| Testing | Jest + Playwright |
+| Hosting | Vercel (with Neon Postgres + Vercel Blob) |
+| CI/CD | GitHub Actions |
 
 ## 🚀 Quick Start
 
@@ -51,51 +74,64 @@ Open [http://localhost:3000](http://localhost:3000)
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@charity.org | admin123 |
-
-Register a new account to test as a regular user.
+| Donor | demo@charity.org | donor123 |
+| Member | member@charity.org | community123 |
 
 ## 📁 Project Structure
 
 ```
 src/
 ├── app/
-│   ├── api/              # API routes
-│   │   ├── auth/         # Registration & NextAuth handlers
-│   │   ├── listings/     # Listings CRUD
-│   │   ├── categories/   # Category management
-│   │   ├── claims/       # Claim system
-│   │   ├── upload/       # Image upload
-│   │   └── admin/        # Admin approval endpoints
-│   ├── (auth)/           # Login & Register pages
-│   ├── admin/            # Admin dashboard
-│   └── listings/         # Browse, detail, create pages
-├── components/           # Reusable UI components
-├── lib/                  # Utilities (prisma, auth, validation)
-└── types/                # TypeScript type definitions
-__tests__/
-├── api/                  # API integration tests
-├── unit/                 # Unit tests (validations)
-└── helpers/              # Test utilities & mocks
+│   ├── api/
+│   │   ├── auth/           # Registration & NextAuth handlers
+│   │   ├── listings/       # Listings CRUD + detail
+│   │   ├── categories/     # Category management
+│   │   ├── claims/         # Claim system + messages + gratitude
+│   │   ├── reports/        # Report listing system
+│   │   ├── notifications/  # User notifications
+│   │   ├── users/me/       # Impact stats + badges
+│   │   ├── upload/         # Image upload (local + Vercel Blob)
+│   │   └── admin/          # Admin approval endpoints
+│   ├── dashboard/          # User dashboard
+│   ├── listings/           # Browse, detail, create pages
+│   ├── login/              # Login page
+│   └── register/           # Registration page
+├── components/
+│   ├── admin/              # Admin dashboard
+│   ├── claims/             # ClaimActions, MessageThread, GratitudeForm
+│   ├── dashboard/          # UserDashboard, ImpactDashboard
+│   ├── forms/              # CreateListingForm
+│   ├── ConditionBadge.tsx   # Item condition display
+│   ├── RelativeTime.tsx     # "X ago" timestamps
+│   ├── ReportButton.tsx     # Report modal
+│   └── ListingCard.tsx      # Listing card with badges
+├── lib/                    # Utilities (prisma, auth, validation, rate-limit)
+└── types/                  # TypeScript type definitions
+
+e2e/                        # Playwright E2E tests
+__tests__/                  # Jest unit & integration tests
+scripts/                    # Build & deployment scripts
 ```
 
 ## 🧪 Testing
 
 ```bash
-# Run all tests
+# Unit tests
 npm test
 
-# Run with coverage
+# Unit tests with coverage
 npm test -- --coverage
+
+# E2E tests (requires dev server)
+npx playwright test
+
+# E2E with UI
+npx playwright test --ui
 ```
 
-**Test Coverage:** 7 suites, 47 tests covering:
-- User registration (validation, duplicates)
-- Listings CRUD (create, read, filter, pagination)
-- Categories management
-- Claims flow (create, update status, withdraw)
-- Admin approval/rejection
-- Image upload validation
-- Zod schema validations
+**Test Coverage:** 140 total tests
+- **62 unit tests** — API routes, validations, edge cases
+- **78 E2E tests** — Full browser flows including registration, login, listing creation, claim lifecycle, admin approval, reports, impact dashboard, dark mode, search/filter, and more
 
 ## 📡 API Endpoints
 
@@ -103,28 +139,49 @@ npm test -- --coverage
 |--------|----------|------|-------------|
 | POST | /api/auth/register | ❌ | Register new user |
 | GET | /api/categories | ❌ | List all categories |
-| GET | /api/listings | ❌ | List approved listings |
-| GET | /api/listings/:id | ❌ | Get listing detail |
+| GET | /api/listings | ❌ | List approved listings (search, filter, paginate) |
+| GET | /api/listings/:id | ❌ | Get listing detail with claims |
 | POST | /api/listings | ✅ | Create new listing |
 | PUT | /api/listings/:id | ✅ | Update own listing |
 | DELETE | /api/listings/:id | ✅ | Delete own listing |
 | POST | /api/claims | ✅ | Claim a listing |
+| PUT | /api/claims/:id | ✅ | Approve/reject/fulfill claim |
 | DELETE | /api/claims/:id | ✅ | Withdraw claim |
-| PUT | /api/claims/:id | ✅ | Update claim status |
+| POST | /api/claims/:id/messages | ✅ | Send message on a claim |
+| GET | /api/claims/:id/messages | ✅ | Get claim message thread |
+| POST | /api/claims/:id/gratitude | ✅ | Leave a gratitude note |
+| POST | /api/reports | ✅ | Report a listing |
+| GET | /api/reports | 🔒 | List reports (admin) |
+| PUT | /api/reports/:id | 🔒 | Review/dismiss report (admin) |
+| GET | /api/users/me/impact | ✅ | Get impact stats & badges |
+| GET | /api/notifications | ✅ | Get user notifications |
+| PUT | /api/notifications/:id | ✅ | Mark notification as read |
 | POST | /api/upload | ✅ | Upload image |
 | GET | /api/admin/listings | 🔒 | All listings (admin) |
-| PUT | /api/admin/listings/:id | 🔒 | Approve/reject listing |
+| PUT | /api/admin/listings/:id | 🔒 | Approve/reject listing (admin) |
+
+## 🔄 CI/CD Pipeline
+
+Every push to `main` runs through GitHub Actions:
+
+1. **Lint** — ESLint
+2. **Type Check** — TypeScript `tsc --noEmit`
+3. **Build** — Next.js production build
+4. **Unit Tests** — Jest with coverage report
+5. **E2E Tests** — Playwright browser tests
+6. **Deploy** — Automatic deploy to Vercel (only after all checks pass)
 
 ## 🔒 Security
 
-- Passwords hashed with bcrypt
-- Role-based access control (USER/ADMIN)
+- Passwords hashed with bcrypt (12 rounds)
+- Role-based access control (USER / ADMIN)
 - Input validation with Zod on all endpoints
 - File upload type & size validation (5MB max, images only)
 - SVG uploads blocked (XSS prevention)
-- No email disclosure in public APIs
+- Rate limiting on sensitive endpoints (uploads, auth)
 - Race condition protection on claims (DB unique constraint + transaction)
 - Protected admin routes via middleware
+- CSRF protection via NextAuth
 
 ## 📄 License
 
