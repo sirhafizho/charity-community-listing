@@ -109,7 +109,7 @@ describe("/api/admin/listings", () => {
     };
 
     mockAuth.mockResolvedValue(createSession({ role: "ADMIN" }));
-    mockPrisma.listing.findUnique.mockResolvedValue({ id: "listing-1" });
+    mockPrisma.listing.findUnique.mockResolvedValue({ id: "listing-1", status: "PENDING" });
     mockPrisma.listing.update.mockResolvedValue(updatedListing);
 
     const response = await PUT(
@@ -152,7 +152,7 @@ describe("/api/admin/listings", () => {
     };
 
     mockAuth.mockResolvedValue(createSession({ role: "ADMIN" }));
-    mockPrisma.listing.findUnique.mockResolvedValue({ id: "listing-2" });
+    mockPrisma.listing.findUnique.mockResolvedValue({ id: "listing-2", status: "PENDING" });
     mockPrisma.listing.update.mockResolvedValue(updatedListing);
 
     const response = await PUT(
