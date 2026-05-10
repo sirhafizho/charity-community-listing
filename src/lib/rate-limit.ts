@@ -49,16 +49,16 @@ export const RATE_LIMITS = {
   login: { limit: 10, windowMs: 60_000 },
   register: { limit: 5, windowMs: 60_000 },
   // Write operations: prevent spam
-  createListing: { limit: 10, windowMs: 60_000 },
-  createClaim: { limit: 10, windowMs: 60_000 },
-  updateClaim: { limit: 20, windowMs: 60_000 },
-  sendMessage: { limit: 30, windowMs: 60_000 },
-  createReport: { limit: 5, windowMs: 60_000 },
-  upload: { limit: 20, windowMs: 60_000 },
+  createListing: { limit: 30, windowMs: 60_000 },
+  createClaim: { limit: 30, windowMs: 60_000 },
+  updateClaim: { limit: 60, windowMs: 60_000 },
+  sendMessage: { limit: 60, windowMs: 60_000 },
+  createReport: { limit: 10, windowMs: 60_000 },
+  upload: { limit: 30, windowMs: 60_000 },
   // Admin: more generous but still capped
-  adminAction: { limit: 60, windowMs: 60_000 },
+  adminAction: { limit: 120, windowMs: 60_000 },
   // Read operations: prevent scraping
-  readApi: { limit: 60, windowMs: 60_000 },
+  readApi: { limit: 120, windowMs: 60_000 },
 } as const;
 
 if (typeof setInterval !== "undefined") {
