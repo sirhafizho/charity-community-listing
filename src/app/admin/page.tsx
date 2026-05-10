@@ -61,6 +61,7 @@ export default async function AdminPage() {
 
   const serializedListings: AdminListing[] = listings.map((listing) => ({
     ...listing,
+    condition: listing.condition as AdminListing["condition"],
     status: listing.status as AdminListing["status"],
     urgency: listing.urgency as AdminListing["urgency"],
     createdAt: listing.createdAt.toISOString(),

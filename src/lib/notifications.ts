@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 const VALID_NOTIFICATION_TYPES = [
   "CLAIM_APPROVED",
   "CLAIM_REJECTED",
+  "CLAIM_FULFILLED",
+  "CLAIM_MESSAGE",
   "LISTING_APPROVED",
   "LISTING_REJECTED",
   "NEW_CLAIM",

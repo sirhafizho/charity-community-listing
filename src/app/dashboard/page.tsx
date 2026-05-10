@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import ImpactDashboard from "@/components/dashboard/ImpactDashboard";
 import UserDashboard from "@/components/dashboard/UserDashboard";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -57,10 +58,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const stats = {
     totalListings: listings.length,
-    approvedListings: listings.filter((listing) => listing.status === "APPROVED").length,
+    approvedListings: listings.filter((listing) => ["APPROVED", "CLAIMED", "FULFILLED"].includes(listing.status)).length,
     pendingListings: listings.filter((listing) => listing.status === "PENDING").length,
     claimsMade: claims.length,
-    approvedClaims: claims.filter((claim) => claim.status === "APPROVED").length,
+    approvedClaims: claims.filter((claim) => ["APPROVED", "FULFILLED"].includes(claim.status)).length,
+    fulfilledClaims: claims.filter((claim) => claim.status === "FULFILLED").length,
     incomingClaims: incomingClaims.length,
     pendingIncoming: incomingClaims.filter((claim) => claim.status === "PENDING").length,
   };
@@ -68,14 +70,14 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const serializedListings = listings.map((listing) => ({
     id: listing.id,
     title: listing.title,
-    status: listing.status as "PENDING" | "APPROVED" | "REJECTED",
+    status: listing.status as "PENDING" | "APPROVED" | "REJECTED" | "CLAIMED" | "FULFILLED",
     createdAt: listing.createdAt.toISOString(),
     category: listing.category,
   }));
 
   const serializedClaims = claims.map((claim) => ({
     id: claim.id,
-    status: claim.status as "PENDING" | "APPROVED" | "REJECTED",
+    status: claim.status as "PENDING" | "APPROVED" | "REJECTED" | "FULFILLED",
     createdAt: claim.createdAt.toISOString(),
     message: claim.message,
     listing: claim.listing,
@@ -83,7 +85,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const serializedIncomingClaims = incomingClaims.map((claim) => ({
     id: claim.id,
-    status: claim.status as "PENDING" | "APPROVED" | "REJECTED",
+    status: claim.status as "PENDING" | "APPROVED" | "REJECTED" | "FULFILLED",
     createdAt: claim.createdAt.toISOString(),
     message: claim.message,
     listing: claim.listing,
@@ -110,6 +112,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </p>
         </div>
       ) : null}
+
+      <ImpactDashboard />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">

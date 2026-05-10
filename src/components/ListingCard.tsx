@@ -1,12 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import ConditionBadge from "@/components/ConditionBadge";
+import RelativeTime from "@/components/RelativeTime";
 import type { ListingCardData } from "@/types";
 
 const statusClasses = {
   APPROVED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
   PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
   REJECTED: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
+  CLAIMED: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200",
+  FULFILLED: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200",
 } as const;
 
 function getExpiringLabel(expiresAt?: string | Date | null) {
@@ -82,11 +86,14 @@ export default function ListingCard({ listing, showStatus = false }: ListingCard
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
 
-          {listing.category ? (
-            <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm">
-              {listing.category.name}
-            </span>
-          ) : null}
+          <div className="absolute left-4 top-4 flex max-w-[calc(100%-5rem)] flex-wrap gap-2">
+            {listing.category ? (
+              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm dark:bg-slate-100 dark:text-slate-900">
+                {listing.category.name}
+              </span>
+            ) : null}
+            <ConditionBadge condition={listing.condition} />
+          </div>
 
           {urgencyBadge ? (
             <span className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold shadow-sm ${urgencyBadge.className}`}>
@@ -114,7 +121,12 @@ export default function ListingCard({ listing, showStatus = false }: ListingCard
                 ))}
               </div>
             ) : null}
-            <p className="text-sm text-slate-500 dark:text-slate-300">Pickup area: {listing.location}</p>
+            <div className="space-y-1">
+              <p className="text-sm text-slate-500 dark:text-slate-300">Pickup area: {listing.location}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-400">
+                Posted <RelativeTime date={listing.createdAt} className="font-medium text-slate-500 dark:text-slate-300" />
+              </p>
+            </div>
           </div>
 
           {showStatus ? (

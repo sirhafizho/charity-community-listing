@@ -3,10 +3,14 @@ import { hash } from "bcryptjs";
 import { prisma } from "../src/lib/prisma";
 
 async function main() {
+  await prisma.claimMessage.deleteMany();
+  await prisma.gratitudeNote.deleteMany();
+  await prisma.report.deleteMany();
   await prisma.claim.deleteMany();
   await prisma.listing.deleteMany();
   await prisma.tag.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.notification.deleteMany();
 
   const adminPassword = await hash("admin123", 12);
   const memberPassword = await hash("community123", 12);
@@ -90,6 +94,7 @@ async function main() {
       location: "Queens, NY",
       image: "/uploads/sample-coats.svg",
       status: "APPROVED",
+      condition: "GOOD",
       urgency: "URGENT",
       userId: demoDonor.id,
       categoryId: categoryMap.Clothing,
@@ -107,6 +112,7 @@ async function main() {
       location: "Brooklyn, NY",
       image: "/uploads/sample-furniture.svg",
       status: "APPROVED",
+      condition: "LIKE_NEW",
       userId: demoDonor.id,
       categoryId: categoryMap.Furniture,
       tags: {
@@ -123,6 +129,7 @@ async function main() {
       location: "Harlem, NY",
       image: "/uploads/sample-books.svg",
       status: "APPROVED",
+      condition: "NEW",
       urgency: "EXPIRING",
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
       userId: demoDonor.id,

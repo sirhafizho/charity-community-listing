@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
         title: payload.title,
         description: payload.description,
         location: payload.location,
+        condition: payload.condition,
         image: payload.image ?? null,
         categoryId: payload.categoryId,
         urgency: payload.urgency,

@@ -16,9 +16,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  listings      Listing[]
-  claims        Claim[]
-  notifications Notification[]
+  listings       Listing[]
+  claims         Claim[]
+  claimMessages  ClaimMessage[]
+  gratitudeNotes GratitudeNote[]
+  notifications  Notification[]
+  reports        Report[]
 }
 
 model Category {
@@ -43,7 +46,8 @@ model Listing {
   description String
   image       String?
   location    String
-  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  condition   String   @default("GOOD") // NEW, LIKE_NEW, GOOD, FAIR
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, CLAIMED, FULFILLED
   urgency     String   @default("NORMAL") // NORMAL, URGENT, EXPIRING
   expiresAt   DateTime?
   createdAt   DateTime @default(now())
@@ -55,26 +59,68 @@ model Listing {
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   claims     Claim[]
   tags       Tag[]    @relation("ListingTags")
+  reports    Report[]
 }
 
 model Claim {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   message   String?
-  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    String    @default("PENDING") // PENDING, APPROVED, REJECTED, FULFILLED
+  pickupAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   listingId String
   listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id])
 
+  messages      ClaimMessage[]
+  gratitudeNote GratitudeNote?
+
+  @@unique([userId, listingId])
+}
+
+model ClaimMessage {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  claimId String
+  claim   Claim  @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+}
+
+model GratitudeNote {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  claimId String @unique
+  claim   Claim  @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  reason    String   // SPAM, INAPPROPRIATE, SCAM, OTHER
+  details   String?
+  status    String   @default("PENDING") // PENDING, REVIEWED, DISMISSED
+  createdAt DateTime @default(now())
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+
   @@unique([userId, listingId])
 }
 
 model Notification {
   id        String   @id @default(cuid())
-  type      String   // CLAIM_APPROVED, CLAIM_REJECTED, LISTING_APPROVED, LISTING_REJECTED, NEW_CLAIM
+  type      String   // CLAIM_APPROVED, CLAIM_REJECTED, LISTING_APPROVED, LISTING_REJECTED, NEW_CLAIM, CLAIM_FULFILLED
   title     String
   message   String
   read      Boolean  @default(false)

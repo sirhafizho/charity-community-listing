@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 type DashboardListing = {
   id: string;
   title: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CLAIMED" | "FULFILLED";
   createdAt: string;
   category?: {
     name: string;
@@ -15,7 +15,7 @@ type DashboardListing = {
 
 type DashboardClaim = {
   id: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: "PENDING" | "APPROVED" | "REJECTED" | "FULFILLED";
   createdAt: string;
   message?: string | null;
   listing: {
@@ -44,6 +44,8 @@ const statusClasses = {
   APPROVED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
   PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
   REJECTED: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
+  CLAIMED: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200",
+  FULFILLED: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200",
 } as const;
 
 function formatDate(value: string) {
@@ -118,8 +120,15 @@ export default function UserDashboard({ listings, claims, incomingClaims }: User
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {listings.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center text-sm text-slate-500 dark:text-slate-300">
-                      You have not created any listings yet.
+                    <td colSpan={5} className="px-6 py-16 text-center">
+                      <p className="text-4xl">📦</p>
+                      <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-slate-100">No listings yet</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                        Share your first item and help someone in your community.
+                      </p>
+                      <Link href="/listings/create" className="mt-4 inline-flex rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                        Share a donation
+                      </Link>
                     </td>
                   </tr>
                 ) : (
@@ -173,8 +182,15 @@ export default function UserDashboard({ listings, claims, incomingClaims }: User
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {claims.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-16 text-center text-sm text-slate-500 dark:text-slate-300">
-                      You have not made any claims yet.
+                    <td colSpan={4} className="px-6 py-16 text-center">
+                      <p className="text-4xl">🤲</p>
+                      <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-slate-100">No claims yet</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                        Browse the catalogue and request items that could help your cause.
+                      </p>
+                      <Link href="/" className="mt-4 inline-flex rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                        Browse donations
+                      </Link>
                     </td>
                   </tr>
                 ) : (
@@ -229,8 +245,12 @@ export default function UserDashboard({ listings, claims, incomingClaims }: User
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {incomingClaims.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center text-sm text-slate-500 dark:text-slate-300">
-                      No one has claimed your items yet.
+                    <td colSpan={5} className="px-6 py-16 text-center">
+                      <p className="text-4xl">🔔</p>
+                      <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-slate-100">No incoming claims</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                        When someone requests one of your items, you&apos;ll see it here.
+                      </p>
                     </td>
                   </tr>
                 ) : (

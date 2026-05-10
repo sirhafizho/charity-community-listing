@@ -170,6 +170,7 @@ describe("/api/listings", () => {
         title: "Winter Coat",
         description: "A warm winter coat in great condition.",
         location: "Boston",
+        condition: "GOOD",
         image: "/uploads/coat.png",
         categoryId: "cat-1",
         userId: "user-1",

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import type { ApiResponse, Category, Listing, ListingUrgency } from "@/types";
+import type { ApiResponse, Category, Listing, ListingCondition, ListingUrgency } from "@/types";
 
 type CreateListingFormProps = {
   categories: Pick<Category, "id" | "name">[];
@@ -18,11 +18,17 @@ type ValidationDetails = {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-const listingFieldNames = ["title", "description", "categoryId", "location", "tags", "urgency", "expiresAt", "image"] as const;
+const listingFieldNames = ["title", "description", "categoryId", "location", "condition", "tags", "urgency", "expiresAt", "image"] as const;
 const urgencyOptions: Array<{ description: string; label: string; value: ListingUrgency }> = [
   { value: "NORMAL", label: "Normal", description: "Standard pickup timeline" },
   { value: "URGENT", label: "Urgent", description: "Needs pickup today" },
   { value: "EXPIRING", label: "Expiring soon", description: "Available for a limited time" },
+];
+const conditionOptions: Array<{ label: string; value: ListingCondition }> = [
+  { value: "NEW", label: "New — unused, still in packaging" },
+  { value: "LIKE_NEW", label: "Like New — barely used, excellent shape" },
+  { value: "GOOD", label: "Good — normal wear, fully functional" },
+  { value: "FAIR", label: "Fair — visible wear, still usable" },
 ];
 
 type ListingFieldName = (typeof listingFieldNames)[number];
@@ -99,6 +105,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [location, setLocation] = useState("");
+  const [condition, setCondition] = useState<ListingCondition>("GOOD");
   const [tagsInput, setTagsInput] = useState("");
   const [urgency, setUrgency] = useState<ListingUrgency>("NORMAL");
   const [expiresAt, setExpiresAt] = useState("");
@@ -238,6 +245,7 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
           description,
           categoryId,
           location,
+          condition,
           tags,
           urgency,
           expiresAt: urgency === "EXPIRING" && expiresAt ? expiresAt : undefined,
@@ -381,6 +389,25 @@ export default function CreateListingForm({ categories }: CreateListingFormProps
             placeholder="Brooklyn, NY"
           />
           <FieldErrorList messages={fieldErrors.location} id="listing-location-error" />
+        </label>
+
+        <label htmlFor="listing-condition" className="space-y-2">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Condition</span>
+          <select
+            id="listing-condition"
+            value={condition}
+            onChange={(event) => {
+              setCondition(event.target.value as ListingCondition);
+              setFormMessages([]);
+            }}
+            className={inputClassName(false)}
+          >
+            {conditionOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label htmlFor="listing-tags" className="space-y-2 md:col-span-2">

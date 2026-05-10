@@ -14,6 +14,48 @@ type RouteContext = {
   }>;
 };
 
+const claimDetailsInclude = {
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+  listing: {
+    include: {
+      category: true,
+    },
+  },
+  messages: {
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  },
+  gratitudeNote: {
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+} as const;
+
+function getPickupMessage(pickupAt: Date | null | undefined) {
+  return pickupAt ? ` Pickup is scheduled for ${pickupAt.toLocaleString()}.` : "";
+}
+
 export async function PUT(request: NextRequest, { params }: RouteContext) {
   try {
     const session = await auth();
@@ -28,11 +70,19 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     const claim = await prisma.claim.findUnique({
       where: { id },
       include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         listing: {
           select: {
             id: true,
             userId: true,
             title: true,
+            status: true,
           },
         },
       },
@@ -49,42 +99,136 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       return apiError("You do not have permission to update this claim.", 403);
     }
 
-    const updatedClaim = await prisma.claim.update({
-      where: { id },
-      data: {
-        status: payload.status,
-      },
-      include: {
-        user: {
+    const outcome = await prisma.$transaction(async (tx) => {
+      let rejectedClaims: Array<{ id: string; userId: string }> = [];
+
+      if (payload.status === "APPROVED") {
+        rejectedClaims = await tx.claim.findMany({
+          where: {
+            listingId: claim.listingId,
+            id: { not: id },
+            status: "PENDING",
+          },
           select: {
             id: true,
-            name: true,
-            email: true,
+            userId: true,
           },
-        },
-        listing: {
-          include: {
-            category: true,
+        });
+
+        if (rejectedClaims.length > 0) {
+          await tx.claim.updateMany({
+            where: {
+              id: { in: rejectedClaims.map((item) => item.id) },
+            },
+            data: {
+              status: "REJECTED",
+            },
+          });
+        }
+
+        await tx.listing.update({
+          where: { id: claim.listing.id },
+          data: { status: "CLAIMED" },
+        });
+      }
+
+      if (payload.status === "FULFILLED") {
+        await tx.listing.update({
+          where: { id: claim.listing.id },
+          data: { status: "FULFILLED" },
+        });
+      }
+
+      if (payload.status === "REJECTED") {
+        const otherApprovedClaim = await tx.claim.findFirst({
+          where: {
+            listingId: claim.listingId,
+            id: { not: id },
+            status: "APPROVED",
           },
+          select: { id: true },
+        });
+
+        if (!otherApprovedClaim) {
+          await tx.listing.update({
+            where: { id: claim.listing.id },
+            data: { status: "APPROVED" },
+          });
+        }
+      }
+
+      await tx.claim.update({
+        where: { id },
+        data: {
+          status: payload.status,
+          ...(payload.pickupAt !== undefined ? { pickupAt: payload.pickupAt } : {}),
         },
-      },
+      });
+
+      const updatedClaim = await tx.claim.findUnique({
+        where: { id },
+        include: claimDetailsInclude,
+      });
+
+      if (!updatedClaim) {
+        throw new Error("CLAIM_NOT_FOUND");
+      }
+
+      return {
+        updatedClaim,
+        rejectedClaims,
+      };
     });
 
-    await createNotification({
-      userId: updatedClaim.userId,
-      type: payload.status === "APPROVED" ? "CLAIM_APPROVED" : "CLAIM_REJECTED",
-      title: payload.status === "APPROVED" ? "Claim approved" : "Claim update",
-      message:
-        payload.status === "APPROVED"
-          ? `Your claim for ${claim.listing.title} was approved.`
-          : `Your claim for ${claim.listing.title} was not approved this time.`,
-      link: `/listings/${claim.listing.id}`,
-    });
+    if (payload.status === "APPROVED") {
+      await Promise.all([
+        createNotification({
+          userId: outcome.updatedClaim.userId,
+          type: "CLAIM_APPROVED",
+          title: "Claim approved",
+          message: `Your claim for ${claim.listing.title} was approved.${getPickupMessage(outcome.updatedClaim.pickupAt)}`,
+          link: `/listings/${claim.listing.id}`,
+        }),
+        ...outcome.rejectedClaims.map((rejectedClaim) =>
+          createNotification({
+            userId: rejectedClaim.userId,
+            type: "CLAIM_REJECTED",
+            title: "Claim update",
+            message: `Your claim for ${claim.listing.title} was not approved. Another recipient was selected.`,
+            link: `/listings/${claim.listing.id}`,
+          }),
+        ),
+      ]);
+    }
 
-    return apiSuccess(updatedClaim, {
+    if (payload.status === "FULFILLED") {
+      await createNotification({
+        userId: outcome.updatedClaim.userId,
+        type: "CLAIM_FULFILLED",
+        title: "Claim fulfilled",
+        message: `Your claim for ${claim.listing.title} was marked as fulfilled.`,
+        link: `/listings/${claim.listing.id}`,
+      });
+    }
+
+    if (payload.status === "REJECTED") {
+      await createNotification({
+        userId: outcome.updatedClaim.userId,
+        type: "CLAIM_REJECTED",
+        title: "Claim update",
+        message: `Your claim for ${claim.listing.title} was not approved this time.`,
+        link: `/listings/${claim.listing.id}`,
+      });
+    }
+
+    return apiSuccess(outcome.updatedClaim, {
       message: `Claim for ${claim.listing.title} updated to ${payload.status.toLowerCase()}.`,
     });
   } catch (error) {
+    if (error instanceof Error && error.message === "CLAIM_NOT_FOUND") {
+      return apiError("Claim not found.", 404);
+    }
+
     return handleApiError(error);
   }
 }

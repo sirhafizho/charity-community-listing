@@ -1,9 +1,12 @@
 export type DateLike = Date | string;
 
 export type UserRole = "USER" | "ADMIN";
-export type ListingStatus = "PENDING" | "APPROVED" | "REJECTED";
-export type ClaimStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type ListingStatus = "PENDING" | "APPROVED" | "REJECTED" | "CLAIMED" | "FULFILLED";
+export type ClaimStatus = "PENDING" | "APPROVED" | "REJECTED" | "FULFILLED";
 export type ListingUrgency = "NORMAL" | "URGENT" | "EXPIRING";
+export type ListingCondition = "NEW" | "LIKE_NEW" | "GOOD" | "FAIR";
+export type ReportReason = "SPAM" | "INAPPROPRIATE" | "SCAM" | "OTHER";
+export type ReportStatus = "PENDING" | "REVIEWED" | "DISMISSED";
 
 export interface User {
   id: string;
@@ -33,6 +36,7 @@ export interface Listing {
   description: string;
   image?: string | null;
   location: string;
+  condition: ListingCondition;
   status: ListingStatus;
   urgency: ListingUrgency;
   expiresAt?: DateLike | null;
@@ -50,11 +54,44 @@ export interface Claim {
   id: string;
   message?: string | null;
   status: ClaimStatus;
+  pickupAt?: DateLike | null;
   createdAt: DateLike;
   updatedAt: DateLike;
   listingId: string;
   userId: string;
   listing?: Listing;
+  user?: Pick<User, "id" | "name" | "email">;
+  messages?: ClaimMessage[];
+  gratitudeNote?: GratitudeNote | null;
+}
+
+export interface ClaimMessage {
+  id: string;
+  content: string;
+  createdAt: DateLike;
+  claimId: string;
+  userId: string;
+  user?: Pick<User, "id" | "name">;
+}
+
+export interface GratitudeNote {
+  id: string;
+  content: string;
+  createdAt: DateLike;
+  claimId: string;
+  userId: string;
+  user?: Pick<User, "id" | "name">;
+}
+
+export interface Report {
+  id: string;
+  reason: ReportReason;
+  details?: string | null;
+  status: ReportStatus;
+  createdAt: DateLike;
+  listingId: string;
+  userId: string;
+  listing?: Pick<Listing, "id" | "title">;
   user?: Pick<User, "id" | "name" | "email">;
 }
 
@@ -74,6 +111,7 @@ export interface CreateListingFormValues {
   description: string;
   categoryId: string;
   location: string;
+  condition?: ListingCondition;
   urgency?: ListingUrgency;
   expiresAt?: DateLike | null;
   image?: string;
@@ -100,6 +138,20 @@ export interface CreateClaimFormValues {
 
 export interface UpdateClaimStatusFormValues {
   status: ClaimStatus;
+  pickupAt?: string;
+}
+
+export interface CreateClaimMessageFormValues {
+  content: string;
+}
+
+export interface CreateGratitudeNoteFormValues {
+  content: string;
+}
+
+export interface CreateReportFormValues {
+  reason: ReportReason;
+  details?: string;
 }
 
 export interface CreateCategoryFormValues {
@@ -139,9 +191,11 @@ export interface ListingCardData {
   title: string;
   image?: string | null;
   location: string;
+  condition: ListingCondition;
   status: ListingStatus;
   urgency: ListingUrgency;
   expiresAt?: DateLike | null;
+  createdAt: DateLike;
   category?: Pick<Category, "id" | "name"> | null;
   tags?: Array<{ id: string; name: string }>;
   user?: Pick<User, "id" | "name"> | null;
@@ -159,4 +213,20 @@ export interface AdminClaim {
   createdAt: string;
   listing: Pick<Listing, "id" | "title" | "location">;
   user: Pick<User, "id" | "name" | "email">;
+}
+
+export interface ImpactStats {
+  itemsDonated: number;
+  peoplHelped: number;
+  daysActive: number;
+  itemsClaimed: number;
+  fulfilledClaims: number;
+}
+
+export interface DonorBadge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  earned: boolean;
 }

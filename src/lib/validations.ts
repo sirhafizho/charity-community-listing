@@ -52,6 +52,7 @@ export const createListingSchema = z.object({
     .max(5000),
   categoryId: z.string().trim().min(1, "Category is required."),
   location: z.string().trim().min(2, "Location is required.").max(120),
+  condition: z.enum(["NEW", "LIKE_NEW", "GOOD", "FAIR"]).optional().default("GOOD"),
   urgency: z.enum(["NORMAL", "URGENT", "EXPIRING"]).optional().default("NORMAL"),
   expiresAt: z.preprocess(
     (value) => {
@@ -71,6 +72,7 @@ export const createListingSchema = z.object({
 export const updateListingSchema = createListingSchema
   .partial()
   .extend({
+    condition: z.enum(["NEW", "LIKE_NEW", "GOOD", "FAIR"]).optional(),
     urgency: z.enum(["NORMAL", "URGENT", "EXPIRING"]).optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
@@ -103,7 +105,28 @@ export const createCategorySchema = z.object({
 });
 
 export const updateClaimStatusSchema = z.object({
-  status: z.enum(["PENDING", "APPROVED", "REJECTED"]),
+  status: z.enum(["PENDING", "APPROVED", "REJECTED", "FULFILLED"]),
+  pickupAt: z.preprocess(
+    (value) => {
+      if (typeof value !== "string") return value;
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    },
+    z.coerce.date().optional(),
+  ),
+});
+
+export const createClaimMessageSchema = z.object({
+  content: z.string().trim().min(1, "Message cannot be empty.").max(500),
+});
+
+export const createGratitudeNoteSchema = z.object({
+  content: z.string().trim().min(1, "Thank-you note cannot be empty.").max(1000),
+});
+
+export const createReportSchema = z.object({
+  reason: z.enum(["SPAM", "INAPPROPRIATE", "SCAM", "OTHER"]),
+  details: optionalText(500),
 });
 
 export const updateListingStatusSchema = z.object({

@@ -3,10 +3,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import ConditionBadge from "@/components/ConditionBadge";
+import ReportButton from "@/components/ReportButton";
 import ShareButtons from "@/components/ShareButtons";
+import ClaimActions from "@/components/claims/ClaimActions";
+import ClaimMessageThread from "@/components/claims/ClaimMessageThread";
+import GratitudeForm from "@/components/claims/GratitudeForm";
 import ClaimForm from "@/components/forms/ClaimForm";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { ListingCondition } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +28,10 @@ const getStatusClassName = (status: string) => {
       return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200";
     case "REJECTED":
       return "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200";
+    case "CLAIMED":
+      return "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200";
+    case "FULFILLED":
+      return "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-200";
     default:
       return "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200";
   }
@@ -93,11 +103,92 @@ function formatDate(value: Date) {
   }).format(value);
 }
 
+type SerializedClaimMessage = {
+  id: string;
+  content: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+  };
+};
+
+type SerializedGratitudeNote = {
+  content: string;
+  createdAt: string;
+  user: {
+    name: string;
+  };
+};
+
+function serializeClaimMessages(
+  messages: Array<{
+    id: string;
+    content: string;
+    createdAt: Date;
+    user: {
+      id: string;
+      name: string | null;
+    };
+  }>,
+): SerializedClaimMessage[] {
+  return messages.map((message) => ({
+    id: message.id,
+    content: message.content,
+    createdAt: message.createdAt.toISOString(),
+    user: {
+      id: message.user.id,
+      name: message.user.name?.trim() || "Community member",
+    },
+  }));
+}
+
+function serializeGratitudeNote(
+  note:
+    | {
+        content: string;
+        createdAt: Date;
+        user: {
+          name: string | null;
+        };
+      }
+    | null
+    | undefined,
+): SerializedGratitudeNote | null {
+  if (!note) {
+    return null;
+  }
+
+  return {
+    content: note.content,
+    createdAt: note.createdAt.toISOString(),
+    user: {
+      name: note.user.name?.trim() || "Community member",
+    },
+  };
+}
+
 async function getListingById(id: string) {
   return prisma.listing.findUnique({
     where: { id },
-    include: {
-      category: true,
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      image: true,
+      location: true,
+      condition: true,
+      status: true,
+      urgency: true,
+      expiresAt: true,
+      createdAt: true,
+      userId: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       tags: {
         select: {
           id: true,
@@ -150,7 +241,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const isOwner = session?.user.id === listing.userId;
   const canViewPrivate = session?.user.role === "ADMIN" || isOwner;
 
-  if (listing.status !== "APPROVED" && !canViewPrivate) {
+  if (!["APPROVED", "CLAIMED", "FULFILLED"].includes(listing.status) && !canViewPrivate) {
     notFound();
   }
 
@@ -160,6 +251,29 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           where: {
             listingId: listing.id,
             userId: session.user.id,
+          },
+          include: {
+            messages: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" as const },
+            },
+            gratitudeNote: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: { createdAt: "desc" },
         })
@@ -175,6 +289,27 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
                 email: true,
               },
             },
+            messages: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" as const },
+            },
+            gratitudeNote: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: { createdAt: "desc" },
         })
@@ -183,6 +318,14 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
 
   const urgencyMeta = getUrgencyMeta(listing.urgency, listing.expiresAt);
   const donorName = listing.user.name?.trim() || "Community donor";
+  const listingCondition = listing.condition as ListingCondition;
+  const existingClaimMessages = existingClaim ? serializeClaimMessages(existingClaim.messages) : [];
+  const existingClaimGratitudeNote = serializeGratitudeNote(existingClaim?.gratitudeNote);
+  const ownerClaimCards = ownerClaims.map((claim) => ({
+    ...claim,
+    serializedMessages: serializeClaimMessages(claim.messages),
+    serializedGratitudeNote: serializeGratitudeNote(claim.gratitudeNote),
+  }));
 
   return (
     <div className="space-y-8 pb-16">
@@ -223,6 +366,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
                 {listing.category.name}
               </span>
+              <ConditionBadge condition={listingCondition} />
               <span className="rounded-full bg-slate-950/50 px-3 py-1 text-sm text-white backdrop-blur">
                 Location • {listing.location}
               </span>
@@ -347,7 +491,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
                 <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">No one has claimed this item yet.</p>
               ) : (
                 <div className="mt-6 space-y-4">
-                  {ownerClaims.map((claim) => (
+                  {ownerClaimCards.map((claim) => (
                     <div
                       key={claim.id}
                       className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900"
@@ -373,6 +517,27 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
                       <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                         {claim.message?.trim() ? claim.message : "No message provided."}
                       </div>
+                      {claim.status === "PENDING" || claim.status === "APPROVED" ? (
+                        <div className="mt-4">
+                          <ClaimActions claimId={claim.id} currentStatus={claim.status} isOwner={isOwner} />
+                        </div>
+                      ) : null}
+                      {claim.status === "APPROVED" || claim.status === "FULFILLED" ? (
+                        <div className="mt-4">
+                          <ClaimMessageThread
+                            claimId={claim.id}
+                            currentUserId={session?.user.id ?? listing.userId}
+                            isClaimOwner={false}
+                            isListingOwner
+                            messages={claim.serializedMessages}
+                          />
+                        </div>
+                      ) : null}
+                      {claim.status === "FULFILLED" ? (
+                        <div className="mt-4">
+                          <GratitudeForm claimId={claim.id} existingNote={claim.serializedGratitudeNote} />
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -384,17 +549,31 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
         <aside className="space-y-6 xl:sticky xl:top-24">
           {session?.user ? (
             existingClaim ? (
-              <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-800 shadow-sm dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
-                <h2 className="text-lg font-semibold">Your claim is already submitted</h2>
-                <p className="mt-2">
-                  Current status: <span className="font-semibold">{existingClaim.status}</span>
-                </p>
-                {existingClaim.message ? (
-                  <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-slate-700 dark:bg-slate-700 dark:text-slate-100">
-                    {existingClaim.message}
+              <>
+                <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-800 shadow-sm dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+                  <h2 className="text-lg font-semibold">Your claim is already submitted</h2>
+                  <p className="mt-2">
+                    Current status: <span className="font-semibold">{existingClaim.status}</span>
                   </p>
+                  {existingClaim.message ? (
+                    <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-slate-700 dark:bg-slate-700 dark:text-slate-100">
+                      {existingClaim.message}
+                    </p>
+                  ) : null}
+                </div>
+                {existingClaim.status === "APPROVED" || existingClaim.status === "FULFILLED" ? (
+                  <ClaimMessageThread
+                    claimId={existingClaim.id}
+                    currentUserId={session.user.id}
+                    isClaimOwner
+                    isListingOwner={false}
+                    messages={existingClaimMessages}
+                  />
                 ) : null}
-              </div>
+                {existingClaim.status === "FULFILLED" ? (
+                  <GratitudeForm claimId={existingClaim.id} existingNote={existingClaimGratitudeNote} />
+                ) : null}
+              </>
             ) : (
               <ClaimForm listingId={listing.id} disabled={session.user.id === listing.userId} />
             )
@@ -435,6 +614,10 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           </div>
 
           <ShareButtons title={listing.title} />
+
+          <div className="flex justify-end">
+            <ReportButton listingId={listing.id} />
+          </div>
         </aside>
       </div>
     </div>

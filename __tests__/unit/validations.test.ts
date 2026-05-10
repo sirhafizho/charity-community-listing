@@ -69,6 +69,7 @@ describe("validation schemas", () => {
       description: "A warm winter coat in great condition.",
       categoryId: "cat-1",
       location: "Boston",
+      condition: "GOOD",
       image: "https://example.com/coat.png",
       tags: ["winter", "kids"],
       urgency: "NORMAL",

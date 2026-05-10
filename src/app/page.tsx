@@ -52,8 +52,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const currentPage = getCurrentPage(getSingleParam(params.page));
   const hasFilters = Boolean(search || category);
 
+  // Server component: Date.now() is safe — runs once per request on the server
+  // eslint-disable-next-line react-hooks/purity
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
   const where = {
     status: "APPROVED",
+    createdAt: { gte: thirtyDaysAgo },
     ...(category ? { categoryId: category } : {}),
     ...(search
       ? {
@@ -118,6 +123,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   const listingCards: ListingCardData[] = listings.map((listing) => ({
     ...listing,
+    condition: listing.condition as ListingCardData["condition"],
     status: listing.status as ListingCardData["status"],
     urgency: listing.urgency as ListingCardData["urgency"],
   }));

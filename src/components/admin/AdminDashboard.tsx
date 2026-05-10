@@ -26,12 +26,16 @@ const statusBadgeClassNames = {
   APPROVED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
   PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
   REJECTED: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
+  CLAIMED: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200",
+  FULFILLED: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200",
 } as const;
 
 const listingFilters: Array<{ label: string; value: ListingFilter }> = [
   { label: "All", value: "ALL" },
   { label: "Pending", value: "PENDING" },
   { label: "Approved", value: "APPROVED" },
+  { label: "Claimed", value: "CLAIMED" },
+  { label: "Fulfilled", value: "FULFILLED" },
   { label: "Rejected", value: "REJECTED" },
 ];
 
@@ -201,6 +205,8 @@ export default function AdminDashboard({ listings, claims }: AdminDashboardProps
     ALL: listingState.length,
     PENDING: listingState.filter((listing) => listing.status === "PENDING").length,
     APPROVED: listingState.filter((listing) => listing.status === "APPROVED").length,
+    CLAIMED: listingState.filter((listing) => listing.status === "CLAIMED").length,
+    FULFILLED: listingState.filter((listing) => listing.status === "FULFILLED").length,
     REJECTED: listingState.filter((listing) => listing.status === "REJECTED").length,
   };
 

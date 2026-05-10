@@ -27,6 +27,16 @@ export const mockPrisma = {
     findFirst: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
+    delete: jest.fn(),
+  },
+  claimMessage: {
+    findMany: jest.fn(),
+    create: jest.fn(),
+  },
+  gratitudeNote: {
+    findUnique: jest.fn(),
+    create: jest.fn(),
   },
   tag: {
     upsert: jest.fn(),

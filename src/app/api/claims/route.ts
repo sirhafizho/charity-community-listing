@@ -8,6 +8,24 @@ import { createClaimSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
 
+const claimMessageInclude = {
+  user: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} as const;
+
+const gratitudeNoteInclude = {
+  user: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} as const;
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -50,6 +68,13 @@ export async function GET(request: NextRequest) {
               category: true,
             },
           },
+          messages: {
+            include: claimMessageInclude,
+            orderBy: { createdAt: "asc" },
+          },
+          gratitudeNote: {
+            include: gratitudeNoteInclude,
+          },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -71,6 +96,13 @@ export async function GET(request: NextRequest) {
               },
             },
           },
+        },
+        messages: {
+          include: claimMessageInclude,
+          orderBy: { createdAt: "asc" },
+        },
+        gratitudeNote: {
+          include: gratitudeNoteInclude,
         },
       },
       orderBy: { createdAt: "desc" },
@@ -126,7 +158,6 @@ export async function POST(request: NextRequest) {
     }
 
     const claim = await prisma.$transaction(async (tx) => {
-      // Double-check within transaction to prevent race condition
       const duplicate = await tx.claim.findFirst({
         where: {
           listingId: payload.listingId,
